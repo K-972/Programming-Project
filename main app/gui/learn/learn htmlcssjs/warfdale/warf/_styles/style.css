@@ -1,0 +1,190 @@
+.header_login {
+
+}
+
+.header_login h1 {
+    text-align: center;
+    font-size: 100px;
+}
+
+.header_login p {
+    text-align: center;
+    font-size: 30px;
+    color: blue;
+}
+
+.padlock-image {
+    background-image: url("../images/padlock.png");
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 500px;
+}
+
+.header a {
+    color: #A95534;
+}
+
+.header .active {
+    color: #A95534;
+}
+
+.header .green-background-button {
+    background-color: #EBFDC1;
+}
+
+.bg-beige {
+    background-color: #EEECE0;
+}
+
+.comfort-bar {
+    background-image: url("../images/CTA.png");
+    background-position: center;
+    -webkit-background-size: cover;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 350px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+
+.comfort-bar h4 {
+    color: white;
+    text-align: center;
+    padding-bottom: 30px;
+}
+
+a.btn, input[type="submit"] {
+    color: white;
+    background-color: #A95534;
+    border: 1px white solid;
+    padding: 10px 40px 10px 40px;
+    font-weight: 700;
+    border-radius: 0;
+}
+
+a.btn:hover, input[type="submit"]:hover {
+    background-color: #A95534;
+    border: 1px white solid;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.exclusive-text {
+    padding: 50px;
+}
+
+.text-center {
+    padding-bottom: 25px;
+    padding-top: 25px;
+}
+
+.exclusive-text h1 {
+    color: #A95534;
+    padding-bottom: 25px;
+}
+
+.image-with-text-row .padded-text {
+    padding: 50px;
+}
+
+.image-with-text-row .padded-text h2 {
+    color: #A95534;
+}
+
+.image-with-text-row.image-right .padded-text {
+    padding-right: 0px;
+}
+
+.image-with-text-row .image {
+    width: 100%;
+    height: 500px;
+    background-repeat: no-repeat;
+}
+
+.image-with-text-row .image.image-one {
+    background-image: url("../images/Wharfedale Lodge-7.png");
+}
+
+.image-with-text-row .image.image-two {
+    background-image: url("../images/Wharfedale Lodge-14.png");
+}
+
+.image-with-text-row .image.image-three {
+    background-image: url("../images/Wharfedale Lodge-2.png");
+}
+
+.footer {
+    padding-top: 40px;
+
+}
+
+.footer a {
+    color: #A95534;
+    text-decoration: none;
+}
+
+.footer ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.footer iframe {
+    height: 150px;
+    width: 100%;
+}
+
+.footer .email {
+    display: block;
+    text-align: right;
+
+}
+
+.footer h5 {
+    padding-bottom: 20px;
+    color: black;
+}
+
+.footer p {
+    text-align: right;
+    padding-top: 20px;
+}
+
+
+.footer .footer-image-one {
+    width: 100%;
+    height: 20px;
+    background-image: url("/images/envelope-open.svg");
+    background-repeat: no-repeat;
+}
+
+.footer .bottom {
+    margin-top: 30px;
+    margin-bottom: 20px;
+    border-top: 1px grey solid;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+}
+
+.message.error {
+    padding: 20px;
+    border: 1px solid darkred;
+    border-radius: 8px;
+    background: red;
+    color: white;
+    font-weight: bold;
+}
+
+.message.success {
+    padding: 20px;
+    border: 1px solid darkgreen;
+    border-radius: 8px;
+    background: green;
+    color: white;
+    font-weight: bold;
+}
