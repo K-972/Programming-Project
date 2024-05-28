@@ -20,7 +20,6 @@ os.chdir(script_dir)
 
 
 
-
 eel.init('_web') # initialize    
 
 @eel.expose 
