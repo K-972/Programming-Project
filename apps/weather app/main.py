@@ -26,7 +26,7 @@ eel.init('_web') # initialize
 def HelloWorld():
     print('Hello World!')
 
-eel.start('index.html', size=(800, 600))
+eel.start('index.html', size=(100, 100))
 
 
 
