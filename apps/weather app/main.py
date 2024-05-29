@@ -22,9 +22,20 @@ os.chdir(script_dir)
 
 eel.init('_web') # initialize    
 
+
+
+##########################################
+############ CORE FUNCTIONS ##############
+##########################################
+
 @eel.expose 
 def HelloWorld():
     print('Hello World!')
+
+
+@eel.expose  
+def close_window():
+    eel.close_page()
 
 eel.start('index.html', size=(100, 100))
 
@@ -35,17 +46,23 @@ eel.start('index.html', size=(100, 100))
 
 
 
-
+def development_close():
+    close = input("press enter to close")
+    if close == "":
+        close_window()
+    else:
+        close_window()
 
 
 
 
 
 # Updates the weather stats
+@eel.expose
 def GrabWeather():
     object = weather()
     object.ReadApiKey()
     object.GetWeather()
-    
+
 
 

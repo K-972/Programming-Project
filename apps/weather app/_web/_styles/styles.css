@@ -1,3 +1,13 @@
 .body-background {
-    background-color: #0c1cad; /* Replace with any color of your choice */
+    background-color: #11113a
+}
+
+.title-text {
+    color: white;
+    font-size: 30px;
+}
+
+
+.white-text-body {
+    color: white;
 }
