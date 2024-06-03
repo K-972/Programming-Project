@@ -1,11 +1,29 @@
 .body-background {
-    background-color: #11113a
+    background-color: #11113a;
+    background-image: url(../_assets/background-image.png);
+    
+    background-repeat: no-repeat;
+    background-position-x: right;
+    background-position-y: 0%; /* or -20% */
+    background-size: 650px 700px;
+
 }
 
 .title-text {
     color: white;
     font-size: 30px;
 }
+
+.square-rounded-corners {
+    height: 500px;
+    width: 500px;
+    
+    border-radius: 10px;
+
+}
+
+
+
 
 
 .white-text-body {
