@@ -37,7 +37,8 @@ def HelloWorld():
 def close_window():
     eel.close_page()
 
-eel.start('index.html', size=(100, 100))
+eel.start('index.html', size=(200,200))
+
 
 
 
