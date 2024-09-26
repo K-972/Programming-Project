@@ -1,5 +1,7 @@
 import cv2
 import time
+from datetime import datetime
+
 
 def record_video(video_length, filename):
     # Open a connection to the camera (0 is usually the default camera)
@@ -47,6 +49,11 @@ def record_video(video_length, filename):
     # Close any OpenCV windows
     cv2.destroyAllWindows()
 
+
+
+
+
+
 def take_image(filename):
     # Open a connection to the camera
     cap = cv2.VideoCapture(0)
@@ -70,6 +77,6 @@ def take_image(filename):
 
 # Usage
 while True:
-    take_image(filename=f'/home/toor/Documents/GitHub/Programming-Project/apps/darts/images/{time.datetime()}')
-    time.sleep(5)
+    take_image(filename=f'/home/toor/Documents/GitHub/Programming-Project/apps/darts/images/{datetime.now()}')
+    time.sleep(0.2)
 
