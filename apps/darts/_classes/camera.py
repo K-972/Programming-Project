@@ -1,9 +1,7 @@
 import cv2
 import time
-from datetime import datetime
 
-
-def record_video(video_length, filename):
+def take_images_and_calculate_average(filename_base, interval, num_images):
     # Open a connection to the camera (0 is usually the default camera)
     cap = cv2.VideoCapture(0)
 
@@ -12,71 +10,38 @@ def record_video(video_length, filename):
         print("Error: Could not open camera.")
         return
 
-    # Get the width and height of the camera feed
-    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    total_time = 0  # Initialize total time variable
 
-    # Define the codec and create VideoWriter object
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')  # You can change codec if needed
-    out = cv2.VideoWriter(filename + '.avi', fourcc, 20.0, (frame_width, frame_height))
-
-    # Record video for the specified length
-    start_time = time.time()
-    print("Recording video...")
-    
-    while (time.time() - start_time) < video_length:
+    # Capture the specified number of images at the given interval
+    for i in range(num_images):
+        start_time = time.time()  # Start time for this capture
+        
         ret, frame = cap.read()
-        if not ret:
-            print("Error: Could not read frame.")
+        if ret:
+            # Save the image with an indexed filename
+            image_filename = f"{filename_base}_{i+1}.jpg"
+            cv2.imwrite(image_filename, frame)
+            print(f"Image {i+1} saved as: {image_filename}")
+        else:
+            print("Error: Could not capture image.")
             break
         
-        # Write the frame to the video file
-        out.write(frame)
-
-        # Display the frame (optional)
-        cv2.imshow('Recording', frame)
+        # Calculate the time taken for this capture
+        elapsed_time = time.time() - start_time
+        total_time += elapsed_time  # Accumulate the total time
         
-        # Break the loop on 'q' key press
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        # Wait for the specified interval
+        time.sleep(interval)
 
-    print("Finished recording.")
+        # Include the interval in the total time
+        total_time += interval
 
-    # Release the video writer and camera
-    out.release()
+    # Release the camera after finishing
     cap.release()
 
-    # Close any OpenCV windows
-    cv2.destroyAllWindows()
+    # Calculate the average time per image (total_time includes all waits)
+    average_time = total_time / num_images if num_images > 0 else 0
+    print(f"Average time taken for each image (including wait): {average_time:.4f} seconds")
 
-
-
-
-
-
-def take_image(filename):
-    # Open a connection to the camera
-    cap = cv2.VideoCapture(0)
-
-    # Check if the camera opened successfully
-    if not cap.isOpened():
-        print("Error: Could not open camera.")
-        return
-
-    # Take a picture
-    ret, frame = cap.read()
-    if ret:
-        image_filename = filename + '.jpg'
-        cv2.imwrite(image_filename, frame)
-        print(f"Image saved as: {image_filename}")
-    else:
-        print("Error: Could not capture image.")
-
-    # Release the camera
-    cap.release()
-
-# Usage
-while True:
-    take_image(filename=f'/home/toor/Documents/GitHub/Programming-Project/apps/darts/images/{datetime.now()}')
-    time.sleep(0.2)
-
+# Usage example: Take 100 pictures, one every 0.5 seconds
+take_images_and_calculate_average(filename_base='output_image', interval=0.5, num_images=100)
