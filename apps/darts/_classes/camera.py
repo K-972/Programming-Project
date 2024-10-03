@@ -56,7 +56,7 @@ class CameraController:
 # test function to take images and calculate average time taken
 # just for testing
 
-def take_images_and_calculate_average(filename_base, interval, num_images):
+def take_images__constantly(interval):
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
