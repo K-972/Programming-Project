@@ -7,7 +7,7 @@ output_folder = r"D:\photos"  # Folder to save images
 camera_index = 0  # Default camera index; change if necessary
 
 # Ensure the output folder exists
-if not os.path.exists(output_folder):
+if not os.path.exists(output_folder): 
     os.makedirs(output_folder)
 
 # Initialize the camera
@@ -45,7 +45,7 @@ try:
             image_count += 1
         
         # Quit the program on 'q' press
-        elif key == ord('q'):
+        elif key == ord('q'): 
             print("Quitting the program.")
             break
 
