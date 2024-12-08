@@ -1,9 +1,8 @@
-import json
 from docx import Document
 
 def word_to_hidscript(docx_path, output_path):
     """
-    Transforms a Word document into an HIDScript.
+    Transforms a Word document into an HIDScript with proper formatting.
     
     :param docx_path: Path to the input Word document.
     :param output_path: Path to save the HIDScript file.
@@ -23,9 +22,9 @@ def word_to_hidscript(docx_path, output_path):
     
     paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
     for i, paragraph in enumerate(paragraphs):
-        # Use json.dumps to escape special characters
-        escaped_text = json.dumps(paragraph)
-        line = f"{escaped_text}\\n\\n\""
+        # Escape special characters
+        escaped_text = paragraph.replace('\\', '\\\\').replace('"', '\\"')
+        line = f'"{escaped_text}\\n\\n"'
         if i < len(paragraphs) - 1:
             line += ' +\n    '
         hidscript.append(line)
