@@ -18,7 +18,7 @@ def word_to_hidscript(docx_path, output_path):
     
     # Begin the type command
     hidscript.append('// Type the text')
-    hidscript.append('type(')
+    hidscript.append('type(\n')
     
     # Extract non-empty paragraphs
     paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
@@ -28,11 +28,11 @@ def word_to_hidscript(docx_path, output_path):
         escaped_text = paragraph.replace('\\', '\\\\').replace('"', '\\"')
         
         # Construct the line with escaped text and newline characters
-        line = f'"{escaped_text}\\n\\n"'
+        line = f'    "{escaped_text}\\n\\n"'
         
         # Add concatenation operator only if it's not the last paragraph
         if i < len(paragraphs) - 1:
-            line += ' +\n    '
+            line += ' +\n'
         
         hidscript.append(line)
     
