@@ -1,3 +1,4 @@
+import json
 from docx import Document
 
 def word_to_hidscript(docx_path, output_path):
@@ -22,9 +23,9 @@ def word_to_hidscript(docx_path, output_path):
     
     paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
     for i, paragraph in enumerate(paragraphs):
-        # Escape special characters in the text
-        text = paragraph.replace('"', '\\"').replace('\\', '\\\\').replace('\n', '\\n')
-        line = f'"{text}\\n\\n"'
+        # Use json.dumps to escape special characters
+        escaped_text = json.dumps(paragraph)
+        line = f"{escaped_text}\\n\\n\""
         if i < len(paragraphs) - 1:
             line += ' +\n    '
         hidscript.append(line)
