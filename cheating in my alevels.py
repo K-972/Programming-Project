@@ -20,13 +20,20 @@ def word_to_hidscript(docx_path, output_path):
     hidscript.append('// Type the text')
     hidscript.append('type(')
     
+    # Extract non-empty paragraphs
     paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+    
     for i, paragraph in enumerate(paragraphs):
-        # Escape special characters
+        # Escape backslashes and double quotes
         escaped_text = paragraph.replace('\\', '\\\\').replace('"', '\\"')
+        
+        # Construct the line with escaped text and newline characters
         line = f'"{escaped_text}\\n\\n"'
+        
+        # Add concatenation operator only if it's not the last paragraph
         if i < len(paragraphs) - 1:
             line += ' +\n    '
+        
         hidscript.append(line)
     
     hidscript.append(');\n')  # Close the `type` command
