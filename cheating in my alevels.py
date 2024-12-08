@@ -16,17 +16,20 @@ def word_to_hidscript(docx_path, output_path):
     hidscript.append('typingSpeed(0, 0);')
     hidscript.append('layout("gb");\n')
     
-    # Iterate over paragraphs in the document
+    # Begin the type command
     hidscript.append('// Type the text')
-    hidscript.append('type("')
+    hidscript.append('type(')
     
-    for paragraph in doc.paragraphs:
-        if paragraph.text.strip():  # Skip empty paragraphs
-            # Escape special characters in the text
-            text = paragraph.text.replace('"', '\\"').replace('\\', '\\\\').replace('\n', '\\n')
-            hidscript.append(f"{text}\\n\\n")
+    paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+    for i, paragraph in enumerate(paragraphs):
+        # Escape special characters in the text
+        text = paragraph.replace('"', '\\"').replace('\\', '\\\\').replace('\n', '\\n')
+        line = f'"{text}\\n\\n"'
+        if i < len(paragraphs) - 1:
+            line += ' +\n    '
+        hidscript.append(line)
     
-    hidscript.append('");\n')  # Close the `type` command
+    hidscript.append(');\n')  # Close the `type` command
     
     # Save the HIDScript to a file
     with open(output_path, 'w', encoding='utf-8') as f:
