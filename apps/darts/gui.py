@@ -75,7 +75,7 @@ class DartsGameSetup:
 class three_0_1:
     def __init__(self, root) -> None:
         self.root = root
-        self.root.title("301")
+        self.root.title(f"301")
         self.root.geometry("400x500")
         self.root.configure(bg="#2c2f31")
         self.root.attributes("-fullscreen", True)
