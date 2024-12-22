@@ -1,4 +1,78 @@
 import customtkinter as ctk
+from tkinter import messagebox
+
+
+
+class Settings:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Settings")
+        self.root.geometry("800x600")  # Adjusted size for better fullscreen handling
+        self.root.configure(bg="#2c2f31")
+        self.root.attributes("-fullscreen", True)  # Open in fullscreen
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Main Frame
+        main_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
+        main_frame.pack(fill=ctk.BOTH, expand=True, padx=20, pady=20)
+
+        # Back Button
+        back_button = ctk.CTkButton(
+            main_frame,
+            text="Back",
+            command=self.go_back,
+            fg_color="gray",  # Changed from default blue to gray
+            font=("Helvetica", 24),  # Increased font size
+            hover_color="#3a3d40",  # Darker hover color
+            width=100,  # Increased width
+            height=40  # Increased height
+        )
+        back_button.pack(anchor="nw", pady=(0, 10))
+
+        # Settings Label
+        settings_label = ctk.CTkLabel(main_frame, text="Settings", font=("Helvetica", 16))
+        settings_label.pack(pady=10)
+
+        # Audio Settings
+        audio_label = ctk.CTkLabel(main_frame, text="Audio Settings", font=("Helvetica", 14))
+        audio_label.pack(pady=(20, 10))
+
+        # Volume Slider
+        volume_label = ctk.CTkLabel(main_frame, text="Volume:")
+        volume_label.pack(pady=(10, 0))
+        self.volume_slider = ctk.CTkSlider(main_frame, from_=0, to=100, number_of_steps=100)
+        self.volume_slider.set(50)
+        self.volume_slider.pack(pady=5)
+
+        # Mute Checkbox
+        self.mute_var = ctk.BooleanVar()
+        mute_checkbox = ctk.CTkCheckBox(main_frame, text="Mute", variable=self.mute_var)
+        mute_checkbox.pack(pady=5)
+
+        # Light Mode Checkbox
+        self.light_mode_var = ctk.BooleanVar()
+        light_mode_checkbox = ctk.CTkCheckBox(main_frame, text="Light Mode", variable=self.light_mode_var)
+        light_mode_checkbox.pack(pady=5)
+
+        # Save Button
+        save_button = ctk.CTkButton(main_frame, text="Save", command=self.save_settings)
+        save_button.pack(pady=20)
+
+    def go_back(self):
+        self.root.destroy()
+        self.menu = MainMenu()
+
+    def save_settings(self):
+        volume = self.volume_slider.get()
+        mute = self.mute_var.get()
+        light_mode = self.light_mode_var.get()
+        # Add logic to save settings
+        print(f"Settings saved - Volume: {volume}, Mute: {mute}, Light Mode: {light_mode}")
+
+
+
 
 class DartsGameSetup:
     def __init__(self, root):
@@ -177,27 +251,44 @@ class DartsGameSetup:
         legs = self.legs_var.get()
         players = [player.get() for player in self.player_entries if player.get()]
 
-        if len(players) < 2:
-            self.result_label.configure(text="Please add at least 2 players.")
+        if len(players) >= 2:
+            game_options = [game_type, sets, legs, players]
+            match game_options[0]:
+                case "301":
+                    self.root.destroy()
+                    new_root = ctk.CTk()
+                    app = ThreeOOne(new_root)
+                    new_root.mainloop()
+                case "501":
+                    self.root.destroy()
+                    new_root = ctk.CTk()
+                    app = FiveOOne(new_root)
+                    new_root.mainloop()
+                case "Around The Clock":
+                    self.root.destroy()
+                    new_root = ctk.CTk()
+                    app = AroundTheClock(new_root)
+                    new_root.mainloop()
+                case "KILLER":
+                    self.root.destroy()
+                    new_root = ctk.CTk()
+                    app = Killer(new_root)
+                    new_root.mainloop()
+                case "PRACTICE":
+                    self.root.destroy()
+                    new_root = ctk.CTk()
+                    app = Practice(new_root)
+                    new_root.mainloop()
+
+
         else:
-            self.result_label.configure(text=f"Game Started: {game_type}, {sets} Sets, {legs} Legs with {players}")
-            self.root.destroy()
-            new_root = ctk.CTk()
-            app = ThreeOOne(new_root)
-            new_root.mainloop()
+            messagebox.showerror("Need at least 2 players to start the game.")
 
     def go_back(self):
         self.root.destroy()
-        self.game_type_label.configure(fg_color="blue")
-        self.sets_label.configure(fg_color="blue")
-        self.legs_label.configure(fg_color="blue")
-        # Here you can reopen the previous window or perform any other action
-        # For example:
-        # previous_root = ctk.CTk()
-        # app = PreviousWindow(previous_root)
-        # previous_root.mainloop()
-        # Since PreviousWindow is not defined, we'll just exit
-        exit()
+        self.menu = MainMenu()
+        print("menu opened")
+        self.menu.mainloop()
 
 class ThreeOOne:
     def __init__(self, root) -> None:
@@ -207,10 +298,18 @@ class ThreeOOne:
         self.root.configure(bg="#2c2f31")
         self.root.attributes("-fullscreen", True)
 
+        self.players = ["Player 1", "Player 2"]
+        self.scores = {player: 301 for player in self.players}
+        self.current_player_index = 0
+        self.current_dart = 1
+        self.multiplier = 1  # Default multiplier
+        self.last_hit_multiplier = 1  # To track the last hit multiplier
+        self.previous_score = 301  # To store the score before the current dart
+
         self.create_widgets()
 
     def create_widgets(self):
-        # Example content for the 301 game screen
+        # Welcome Label
         label = ctk.CTkLabel(
             self.root, 
             text="Welcome to 301 Game!", 
@@ -220,12 +319,291 @@ class ThreeOOne:
         )
         label.pack(pady=20)
 
-        # Add more widgets and functionality as needed
+        # Current Player Label
+        self.current_player_label = ctk.CTkLabel(
+            self.root, 
+            text=f"Current Player: {self.players[self.current_player_index]}", 
+            font=("Helvetica", 18)
+        )
+        self.current_player_label.pack(pady=10)
+
+        # Current Score Label
+        self.current_score_label = ctk.CTkLabel(
+            self.root, 
+            text=f"Score: {self.scores[self.players[self.current_player_index]]}", 
+            font=("Helvetica", 16)
+        )
+        self.current_score_label.pack(pady=5)
+
+        # Current Dart Label
+        self.current_dart_label = ctk.CTkLabel(
+            self.root, 
+            text=f"Dart: {self.current_dart}/3", 
+            font=("Helvetica", 16, "bold")
+        )
+        self.current_dart_label.pack(pady=5)
+
+        # Keypad Frame
+        keypad_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
+        keypad_frame.pack(pady=10)
+
+        # Number Buttons 1-20
+        numbers = list(range(1, 21))
+        rows = 4
+        cols = 5
+        for index, number in enumerate(numbers):
+            row = index // cols
+            col = index % cols
+            button = ctk.CTkButton(
+                keypad_frame, 
+                text=str(number), 
+                width=60, 
+                height=60, 
+                command=lambda num=number: self.append_score(num)
+            )
+            button.grid(row=row, column=col, padx=5, pady=5)
+
+        # Special Buttons Frame
+        special_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
+        special_frame.pack(pady=10)
+
+        # Treble Button
+        treble_button = ctk.CTkButton(
+            special_frame, 
+            text="Treble", 
+            width=100, 
+            height=60, 
+            command=lambda: self.set_multiplier('Treble')
+        )
+        treble_button.grid(row=0, column=0, padx=5, pady=5)
+
+        # Double Button
+        double_button = ctk.CTkButton(
+            special_frame, 
+            text="Double", 
+            width=100, 
+            height=60, 
+            command=lambda: self.set_multiplier('Double')
+        )
+        double_button.grid(row=0, column=1, padx=5, pady=5)
+
+        # 25 Button
+        twenty_five_button = ctk.CTkButton(
+            special_frame, 
+            text="25", 
+            width=100, 
+            height=60, 
+            command=lambda: self.append_score(25)
+        )
+        twenty_five_button.grid(row=1, column=0, padx=5, pady=5)
+
+        # 50 Button
+        fifty_button = ctk.CTkButton(
+            special_frame, 
+            text="50", 
+            width=100, 
+            height=60, 
+            command=lambda: self.append_score(50)
+        )
+        fifty_button.grid(row=1, column=1, padx=5, pady=5)
+
+        # Scores Display
+        self.scores_display = ctk.CTkLabel(
+            self.root, 
+            text=self.get_scores_text(), 
+            font=("Helvetica", 14)
+        )
+        self.scores_display.pack(pady=20)
+
+    def append_score(self, value):
+        current_player = self.players[self.current_player_index]
+        current_score = self.scores[current_player]
+
+        # Store previous score in case of a bust
+        self.previous_score = current_score
+
+        # Check for Treble on 25 or 50
+        if (self.multiplier == 3 or self.multiplier == 2) and value in [25, 50]:
+            messagebox.showerror("Invalid Action", "Cannot apply Treble to 25 or 50.")
+            self.multiplier = 1  # Reset multiplier
+            return
+
+        # Calculate the score with multiplier
+        if self.multiplier > 1:
+            score = value * self.multiplier
+            self.last_hit_multiplier = self.multiplier
+            self.multiplier = 1  # Reset multiplier after use
+        else:
+            score = value
+            self.last_hit_multiplier = 1
+
+        # Validate score
+        if score > current_score:
+            messagebox.showerror("Invalid Score", "Score cannot exceed current score.")
+            return
+        elif score == current_score:
+            if self.last_hit_multiplier == 2:
+                messagebox.showinfo("Game Over", f"{current_player} wins!")
+                self.root.destroy()
+                return
+            else:
+                messagebox.showerror("Invalid Finish", "The game must end on a Double.")
+                return
+
+        # Apply the score
+        self.scores[current_player] -= score
+        self.update_display()
+        self.next_dart()
+
+    def set_multiplier(self, multiplier_type):
+        if multiplier_type == 'Treble':
+            self.multiplier = 3
+        elif multiplier_type == 'Double':
+            self.multiplier = 2
+
+    def get_scores_text(self):
+        return "\n".join([f"{player}: {score}" for player, score in self.scores.items()])
+
+    def update_display(self):
+        current_player = self.players[self.current_player_index]
+        self.current_player_label.configure(text=f"Current Player: {current_player}")
+        self.current_score_label.configure(text=f"Score: {self.scores[current_player]}")
+        self.scores_display.configure(text=self.get_scores_text())
+        self.current_dart_label.configure(text=f"Dart: {self.current_dart}/3")
+        self.last_hit_multiplier = 1  # Reset multiplier display if needed
+
+    def next_dart(self):
+        if self.current_dart < 3:
+            self.current_dart += 1
+        else:
+            self.current_dart = 1
+            self.switch_turn()
+        self.current_dart_label.configure(text=f"Dart: {self.current_dart}/3")
+
+    def switch_turn(self):
+        self.current_player_index = (self.current_player_index + 1) % len(self.players)
+        current_player = self.players[self.current_player_index]
+        self.current_player_label.configure(text=f"Current Player: {current_player}")
+        self.current_score_label.configure(text=f"Score: {self.scores[current_player]}")
+        self.scores_display.configure(text=self.get_scores_text())
+
+    def go_back(self):
+        self.root.destroy()
+        self.menu = MainMenu()
+        print("menu opened")
+        self.menu.mainloop()
+
+class MainMenu(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("Main Menu")
+        self.geometry("400x400")
+        self.configure(fg_color="#2c2f31")
+        self.attributes("-fullscreen", True)
+        self.create_main_menu()
+
+    def create_main_menu(self):
+        main_menu_frame = ctk.CTkFrame(self, fg_color="#2c2f31")
+        main_menu_frame.pack(expand=True, pady=50)
+
+        title_label = ctk.CTkLabel(
+            main_menu_frame,
+            text="Ethan's Darts App",
+            fg_color="#2c2f31",
+            text_color="white",
+            font=("Arial", 34, "bold")
+        )
+        title_label.pack(pady=(0, 30))
+
+        play_button = ctk.CTkButton(
+            main_menu_frame,
+            text="Play",
+            command=self.play_game,
+            fg_color="#3a3d40",
+            text_color="white",
+            hover_color="#4a4d50",
+            width=200,
+            height=40
+        )
+        play_button.pack(pady=10)
+
+        stats_button = ctk.CTkButton(
+            main_menu_frame,
+            text="Stats",
+            command=self.show_stats,
+            fg_color="#3a3d40",
+            text_color="white",
+            hover_color="#4a4d50",
+            width=200,
+            height=40
+        )
+        stats_button.pack(pady=10)
+
+        settings_button = ctk.CTkButton(
+            main_menu_frame,
+            text="Settings",
+            command=self.open_settings,
+            fg_color="#3a3d40",
+            text_color="white",
+            hover_color="#4a4d50",
+            width=200,
+            height=40
+        )
+        settings_button.pack(pady=10)
+
+        quit_button = ctk.CTkButton(
+            main_menu_frame,
+            text="Quit",
+            command=self.quit_application,
+            fg_color="#3a3d40",
+            text_color="white",
+            hover_color="#4a4d50",
+            width=200,
+            height=40
+        )
+        quit_button.pack(pady=10)
+
+    def play_game(self):
+        self.destroy()
+        play_game_root = ctk.CTk()
+        app = DartsGameSetup(play_game_root)
+        print("Game Setup Window Opened")
+        play_game_root.mainloop()
+
+    def show_stats(self):
+        # Implement stats screen
+        pass
+
+    def open_settings(self):
+        self.destroy()
+        settings_root = ctk.CTk()
+        app = Settings(settings_root)
+        print("Settings Window Opened")
+        settings_root.mainloop()
+
+    def save_settings(self, window):
+        selected_theme = self.theme_var.get()
+        ctk.set_appearance_mode(selected_theme)
+        
+        volume = self.volume_slider.get()
+        # Implement actual volume control logic here
+        print(f"Theme set to {selected_theme}, Volume set to {volume}")
+
+        window.destroy()
+
+    def quit_application(self):
+        self.destroy()
+
+# Example navigation function to go back to MainMenu
+def go_back_to_main_menu(self):
+    self.destroy()  # Destroy the current window
+    main_menu = MainMenu()
+    # Remove the following line to prevent multiple mainloops
+    main_menu.mainloop()
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")  # Optional: set appearance mode to dark
     ctk.set_default_color_theme("blue")  # Optional: set default color theme
 
-    root = ctk.CTk()
-    app = DartsGameSetup(root)
-    root.mainloop()
+    app = MainMenu()
+    app.mainloop()
