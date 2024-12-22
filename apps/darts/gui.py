@@ -31,7 +31,10 @@ class DartsGameSetup:
             fg_color="#2c2f31", 
             text_color="white",
             hover_color="#3a3d40",
-            border_width=0
+            border_width=0,
+            width=100,  # Increased width
+            height=50,  # Increased height
+            font=("Arial", 16)  # Larger font
         )
         back_button.pack(side=ctk.LEFT)
 
@@ -185,6 +188,9 @@ class DartsGameSetup:
 
     def go_back(self):
         self.root.destroy()
+        self.game_type_label.configure(fg_color="blue")
+        self.sets_label.configure(fg_color="blue")
+        self.legs_label.configure(fg_color="blue")
         # Here you can reopen the previous window or perform any other action
         # For example:
         # previous_root = ctk.CTk()
