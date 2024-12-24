@@ -257,7 +257,7 @@ class DartsGameSetup:
                 case "301":
                     self.root.destroy()
                     new_root = ctk.CTk()
-                    app = ThreeOOne(new_root)
+                    app = ThreeOOne(new_root, game_options)
                     new_root.mainloop()
                 case "501":
                     self.root.destroy()
@@ -280,7 +280,6 @@ class DartsGameSetup:
                     app = Practice(new_root)
                     new_root.mainloop()
 
-
         else:
             messagebox.showerror("Need at least 2 players to start the game.")
 
@@ -291,14 +290,15 @@ class DartsGameSetup:
         self.menu.mainloop()
 
 class ThreeOOne:
-    def __init__(self, root) -> None:
+    def __init__(self, root, game_options) -> None:
         self.root = root
         self.root.title("301")
         self.root.geometry("800x600")
         self.root.configure(bg="#2c2f31")
         self.root.attributes("-fullscreen", True)
 
-        self.players = ["Player 1", "Player 2"]
+        self.players = game_options[3]
+        self.game_options = game_options
         self.scores = {player: 301 for player in self.players}
         self.current_player_index = 0
         self.current_dart = 1
@@ -306,62 +306,261 @@ class ThreeOOne:
         self.last_hit_multiplier = 1  # To track the last hit multiplier
         self.previous_score = 301  # To store the score before the current dart
 
+        # Initialize stats
+        self.darts_thrown = {player: 0 for player in self.players}
+        self.avg_score = {player: 0.0 for player in self.players}
+        self.highest_score = {player: 0 for player in self.players}
+
         self.create_widgets()
 
     def create_widgets(self):
-        # Welcome Label
-        label = ctk.CTkLabel(
+        num_of_players = len(self.players)
+        if num_of_players == 2:
+            self.player_frames = []
+
+            # Left Frame for Player 1
+            left_frame = ctk.CTkFrame(self.root, width=200, fg_color="#2c2f31")
+            left_frame.pack(side="left", fill="y", padx=10, pady=20)
+
+            # Player 1 Name Label
+            player_name_label = ctk.CTkLabel(
+                left_frame, 
+                text="Player Name:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            player_name_label.pack(pady=(0, 5))
+            self.player_name = ctk.CTkLabel(
+                left_frame, 
+                text=self.players[self.current_player_index], 
+                font=("Arial", 16)
+            )
+            self.player_name.pack(pady=(0, 10))
+
+            # Finish Label for Player 1
+            finish_label = ctk.CTkLabel(
+                left_frame, 
+                text="Finish:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            finish_label.pack(pady=(0, 5))
+            self.finish = ctk.CTkLabel(
+                left_frame, 
+                text="0", 
+                font=("Arial", 16)
+            )
+            self.finish.pack(pady=(0, 10))
+
+            # Current Score Label for Player 1
+            current_score_label = ctk.CTkLabel(
+                left_frame, 
+                text="Current Score:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            current_score_label.pack(pady=(0, 5))
+            self.current_score = ctk.CTkLabel(
+                left_frame, 
+                text=str(self.scores[self.players[self.current_player_index]]), 
+                font=("Arial", 16)
+            )
+            self.current_score.pack(pady=(0, 10))
+
+            # Darts Thrown Label for Player 1
+            darts_thrown_label = ctk.CTkLabel(
+                left_frame, 
+                text="Darts Thrown:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            darts_thrown_label.pack(pady=(0, 5))
+            self.darts_thrown_label = ctk.CTkLabel(
+                left_frame, 
+                text=str(self.darts_thrown[self.players[self.current_player_index]]), 
+                font=("Arial", 16)
+            )
+            self.darts_thrown_label.pack(pady=(0, 10))
+
+            # Average Score per Dart Label for Player 1
+            avg_score_label = ctk.CTkLabel(
+                left_frame, 
+                text="Avg Score/Dart:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            avg_score_label.pack(pady=(0, 5))
+            self.avg_score_label = ctk.CTkLabel(
+                left_frame, 
+                text=str(self.avg_score[self.players[self.current_player_index]]), 
+                font=("Arial", 16)
+            )
+            self.avg_score_label.pack(pady=(0, 10))
+
+            # Highest Score in a Turn Label for Player 1
+            highest_score_label = ctk.CTkLabel(
+                left_frame, 
+                text="Highest Score:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            highest_score_label.pack(pady=(0, 5))
+            self.highest_score_label = ctk.CTkLabel(
+                left_frame, 
+                text=str(self.highest_score[self.players[self.current_player_index]]), 
+                font=("Arial", 16)
+            )
+            self.highest_score_label.pack(pady=(0, 10))
+
+            # Right Frame for Player 2
+            right_frame = ctk.CTkFrame(self.root, width=200, fg_color="#2c2f31")
+            right_frame.pack(side="right", fill="y", padx=10, pady=20)
+
+            # Player 2 Name Label
+            player2_name_label = ctk.CTkLabel(
+                right_frame, 
+                text="Player Name:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            player2_name_label.pack(pady=(0, 5))
+            self.player2_name = ctk.CTkLabel(
+                right_frame, 
+                text=self.players[1], 
+                font=("Arial", 16)
+            )
+            self.player2_name.pack(pady=(0, 10))
+
+            # Finish Label for Player 2
+            finish2_label = ctk.CTkLabel(
+                right_frame, 
+                text="Finish:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            finish2_label.pack(pady=(0, 5))
+            self.finish2 = ctk.CTkLabel(
+                right_frame, 
+                text="0", 
+                font=("Arial", 16)
+            )
+            self.finish2.pack(pady=(0, 10))
+
+            # Current Score Label for Player 2
+            current_score2_label = ctk.CTkLabel(
+                right_frame, 
+                text="Current Score:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            current_score2_label.pack(pady=(0, 5))
+            self.current_score2 = ctk.CTkLabel(
+                right_frame, 
+                text=str(self.scores[self.players[1]]), 
+                font=("Arial", 16)
+            )
+            self.current_score2.pack(pady=(0, 10))
+
+            # Darts Thrown Label for Player 2
+            darts_thrown2_label = ctk.CTkLabel(
+                right_frame, 
+                text="Darts Thrown:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            darts_thrown2_label.pack(pady=(0, 5))
+            self.darts_thrown2_label = ctk.CTkLabel(
+                right_frame, 
+                text=str(self.darts_thrown[self.players[1]]), 
+                font=("Arial", 16)
+            )
+            self.darts_thrown2_label.pack(pady=(0, 10))
+
+            # Average Score per Dart Label for Player 2
+            avg_score2_label = ctk.CTkLabel(
+                right_frame, 
+                text="Avg Score/Dart:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            avg_score2_label.pack(pady=(0, 5))
+            self.avg_score2_label = ctk.CTkLabel(
+                right_frame, 
+                text=str(self.avg_score[self.players[1]]), 
+                font=("Arial", 16)
+            )
+            self.avg_score2_label.pack(pady=(0, 10))
+
+            # Highest Score in a Turn Label for Player 2
+            highest_score2_label = ctk.CTkLabel(
+                right_frame, 
+                text="Highest Score:", 
+                text_color="white", 
+                font=("Arial", 20, "bold")
+            )
+            highest_score2_label.pack(pady=(0, 5))
+            self.highest_score2_label = ctk.CTkLabel(
+                right_frame, 
+                text=str(self.highest_score[self.players[1]]), 
+                font=("Arial", 16)
+            )
+            self.highest_score2_label.pack(pady=(0, 10))
+
+            
+
+
+            label = ctk.CTkLabel(
             self.root, 
             text="Welcome to 301 Game!", 
             fg_color="#2c2f31", 
             text_color="white", 
             font=("Arial", 24, "bold")
         )
-        label.pack(pady=20)
+            label.pack(pady=20)
 
-        # Current Player Label
-        self.current_player_label = ctk.CTkLabel(
-            self.root, 
-            text=f"Current Player: {self.players[self.current_player_index]}", 
-            font=("Helvetica", 18)
-        )
-        self.current_player_label.pack(pady=10)
-
-        # Current Score Label
-        self.current_score_label = ctk.CTkLabel(
-            self.root, 
-            text=f"Score: {self.scores[self.players[self.current_player_index]]}", 
-            font=("Helvetica", 16)
-        )
-        self.current_score_label.pack(pady=5)
-
-        # Current Dart Label
-        self.current_dart_label = ctk.CTkLabel(
-            self.root, 
-            text=f"Dart: {self.current_dart}/3", 
-            font=("Helvetica", 16, "bold")
-        )
-        self.current_dart_label.pack(pady=5)
-
-        # Keypad Frame
-        keypad_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
-        keypad_frame.pack(pady=10)
-
-        # Number Buttons 1-20
-        numbers = list(range(1, 21))
-        rows = 4
-        cols = 5
-        for index, number in enumerate(numbers):
-            row = index // cols
-            col = index % cols
-            button = ctk.CTkButton(
-                keypad_frame, 
-                text=str(number), 
-                width=60, 
-                height=60, 
-                command=lambda num=number: self.append_score(num)
+            # Current Player Label
+            self.current_player_label = ctk.CTkLabel(
+                self.root, 
+                text=f"Current Player: {self.players[self.current_player_index]}", 
+                font=("Helvetica", 18)
             )
-            button.grid(row=row, column=col, padx=5, pady=5)
+            self.current_player_label.pack(pady=10)
+
+            # Current Score Label
+            self.current_score_label = ctk.CTkLabel(
+                self.root, 
+                text=f"Score: {self.scores[self.players[self.current_player_index]]}", 
+                font=("Helvetica", 16)
+            )
+            self.current_score_label.pack(pady=5)
+
+            # Current Dart Label
+            self.current_dart_label = ctk.CTkLabel(
+                self.root, 
+                text=f"Dart: {self.current_dart}/3", 
+                font=("Helvetica", 16, "bold")
+            )
+            self.current_dart_label.pack(pady=5)
+
+            # Number Pad Frame
+            keypad_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
+            keypad_frame.pack(pady=10)
+
+            # Number Buttons 1-20
+            numbers = list(range(1, 21))
+            rows = 4
+            cols = 5
+            for index, number in enumerate(numbers):
+                row = index // cols
+                col = index % cols
+                button = ctk.CTkButton(
+                    keypad_frame, 
+                    text=str(number), 
+                    width=60, 
+                    height=60, 
+                    command=lambda num=number: self.append_score(num)
+                )
+                button.grid(row=row, column=col, padx=5, pady=5)
 
         # Special Buttons Frame
         special_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
@@ -415,6 +614,7 @@ class ThreeOOne:
         )
         self.scores_display.pack(pady=20)
 
+
     def append_score(self, value):
         current_player = self.players[self.current_player_index]
         current_score = self.scores[current_player]
@@ -455,43 +655,51 @@ class ThreeOOne:
         self.update_display()
         self.next_dart()
 
-    def set_multiplier(self, multiplier_type):
-        if multiplier_type == 'Treble':
-            self.multiplier = 3
-        elif multiplier_type == 'Double':
-            self.multiplier = 2
+    def submit_score(self):
+        try:
+            score = int(self.score_input.get())
+            player = self.players[self.current_player_index]
+            self.update_stats(player, score)
+            self.switch_player()
+            self.score_input.delete(0, 'end')
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid score.")
 
-    def get_scores_text(self):
-        return "\n".join([f"{player}: {score}" for player, score in self.scores.items()])
+    def update_stats(self, player, score):
+        self.darts_thrown[player] += 1
+        self.scores[player] -= score
+        self.avg_score[player] = (301 - self.scores[player]) / self.darts_thrown[player]
+        if score > self.highest_score[player]:
+            self.highest_score[player] = score
 
-    def update_display(self):
-        current_player = self.players[self.current_player_index]
-        self.current_player_label.configure(text=f"Current Player: {current_player}")
-        self.current_score_label.configure(text=f"Score: {self.scores[current_player]}")
-        self.scores_display.configure(text=self.get_scores_text())
-        self.current_dart_label.configure(text=f"Dart: {self.current_dart}/3")
-        self.last_hit_multiplier = 1  # Reset multiplier display if needed
-
-    def next_dart(self):
-        if self.current_dart < 3:
-            self.current_dart += 1
+        # Update the labels
+        if player == self.players[0]:
+            self.current_score.config(text=str(self.scores[player]))
+            self.darts_thrown_label.config(text=str(self.darts_thrown[player]))
+            self.avg_score_label.config(text=str(round(self.avg_score[player], 2)))
+            self.highest_score_label.config(text=str(self.highest_score[player]))
         else:
-            self.current_dart = 1
-            self.switch_turn()
-        self.current_dart_label.configure(text=f"Dart: {self.current_dart}/3")
+            self.current_score2.config(text=str(self.scores[player]))
+            self.darts_thrown2_label.config(text=str(self.darts_thrown[player]))
+            self.avg_score2_label.config(text=str(round(self.avg_score[player], 2)))
+            self.highest_score2_label.config(text=str(self.highest_score[player]))
 
-    def switch_turn(self):
+    def switch_player(self):
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
-        current_player = self.players[self.current_player_index]
-        self.current_player_label.configure(text=f"Current Player: {current_player}")
-        self.current_score_label.configure(text=f"Score: {self.scores[current_player]}")
-        self.scores_display.configure(text=self.get_scores_text())
+        self.update_player_labels()
 
-    def go_back(self):
-        self.root.destroy()
-        self.menu = MainMenu()
-        print("menu opened")
-        self.menu.mainloop()
+    def update_player_labels(self):
+        self.player_name.config(text=self.players[self.current_player_index])
+        self.current_score.config(text=str(self.scores[self.players[self.current_player_index]]))
+        self.darts_thrown_label.config(text=str(self.darts_thrown[self.players[self.current_player_index]]))
+        self.avg_score_label.config(text=str(round(self.avg_score[self.players[self.current_player_index]], 2)))
+        self.highest_score_label.config(text=str(self.highest_score[self.players[self.current_player_index]]))
+
+        self.player2_name.config(text=self.players[1])
+        self.current_score2.config(text=str(self.scores[self.players[1]]))
+        self.darts_thrown2_label.config(text=str(self.darts_thrown[self.players[1]]))
+        self.avg_score2_label.config(text=str(round(self.avg_score[self.players[1]], 2)))
+        self.highest_score2_label.config(text=str(self.highest_score[self.players[1]]))
 
 class MainMenu(ctk.CTk):
     def __init__(self):
