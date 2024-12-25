@@ -310,8 +310,93 @@ class ThreeOOne:
         self.darts_thrown = {player: 0 for player in self.players}
         self.avg_score = {player: 0.0 for player in self.players}
         self.highest_score = {player: 0 for player in self.players}
+        self.current_turn_score = 0  # To track the score in the current turn
 
         self.create_widgets()
+
+    def append_score(self, value):
+        current_player = self.players[self.current_player_index]
+        current_score = self.scores[current_player]
+
+        # Store previous score in case of a bust
+        self.previous_score = current_score
+
+        # Check for Treble on 25 or 50
+        if (self.multiplier == 3 or self.multiplier == 2) and value in [25, 50]:
+            messagebox.showerror("Invalid Action", "Cannot apply Treble to 25 or 50.")
+            self.multiplier = 1  # Reset multiplier
+            return
+
+        # Calculate the score with multiplier
+        if self.multiplier > 1:
+            score = value * self.multiplier
+            self.last_hit_multiplier = self.multiplier
+            self.multiplier = 1  # Reset multiplier after use
+        else:
+            score = value
+            self.last_hit_multiplier = 1
+
+        # Validate score
+        if score > current_score:
+            messagebox.showerror("Invalid Score", "Score cannot exceed current score.")
+            return
+        elif score == current_score:
+            if self.last_hit_multiplier == 2:
+                messagebox.showinfo("Game Over", f"{current_player} wins!")
+                self.root.destroy()
+                return
+            else:
+                messagebox.showerror("Invalid Finish", "The game must end on a Double.")
+                return
+
+        # Apply the score
+        self.scores[current_player] -= score
+        self.current_turn_score += score  # Add to current turn score
+        self.darts_thrown[current_player] += 1  # Increment darts thrown
+
+        # Update average score per dart
+        total_score = 301 - self.scores[current_player]
+        self.avg_score[current_player] = total_score / self.darts_thrown[current_player]
+
+        # Update highest score in a turn
+        if self.current_turn_score > self.highest_score[current_player]:
+            self.highest_score[current_player] = self.current_turn_score
+
+        self.update_display()
+        self.next_dart()
+
+    def next_dart(self):
+        if self.current_dart < 3:
+            self.current_dart += 1
+        else:
+            self.current_dart = 1
+            self.current_turn_score = 0  # Reset turn score
+            self.switch_turn()
+        self.current_dart_label.configure(text=f"Dart: {self.current_dart}/3")
+
+    def update_display(self):
+        current_player = self.players[self.current_player_index]
+        self.current_player_label.configure(text=f"Current Player: {current_player}")
+        self.current_score_label.configure(text=f"Score: {self.scores[current_player]}")
+        self.scores_display.configure(text=self.get_scores_text())
+        self.current_dart_label.configure(text=f"Dart: {self.current_dart}/3")
+        self.darts_thrown_label.configure(text=str(self.darts_thrown[current_player]))
+        self.avg_score_label.configure(text=f"{self.avg_score[current_player]:.2f}")
+        self.highest_score_label.configure(text=str(self.highest_score[current_player]))
+        self.last_hit_multiplier = 1  # Reset multiplier display if needed
+
+    def switch_turn(self):
+        self.current_player_index = (self.current_player_index + 1) % len(self.players)
+        current_player = self.players[self.current_player_index]
+        self.current_player_label.configure(text=f"Current Player: {current_player}")
+        self.current_score_label.configure(text=f"Score: {self.scores[current_player]}")
+        self.scores_display.configure(text=self.get_scores_text())
+        self.darts_thrown_label.configure(text=str(self.darts_thrown[current_player]))
+        self.avg_score_label.configure(text=f"{self.avg_score[current_player]:.2f}")
+        self.highest_score_label.configure(text=str(self.highest_score[current_player]))
+
+    def get_scores_text(self):
+        return "\n".join([f"{player}: {score}" for player, score in self.scores.items()])
 
     def create_widgets(self):
         num_of_players = len(self.players)
@@ -506,16 +591,13 @@ class ThreeOOne:
             )
             self.highest_score2_label.pack(pady=(0, 10))
 
-            
-
-
             label = ctk.CTkLabel(
-            self.root, 
-            text="Welcome to 301 Game!", 
-            fg_color="#2c2f31", 
-            text_color="white", 
-            font=("Arial", 24, "bold")
-        )
+                self.root, 
+                text="Welcome to 301 Game!", 
+                fg_color="#2c2f31", 
+                text_color="white", 
+                font=("Arial", 24, "bold")
+            )
             label.pack(pady=20)
 
             # Current Player Label
@@ -562,144 +644,57 @@ class ThreeOOne:
                 )
                 button.grid(row=row, column=col, padx=5, pady=5)
 
-        # Special Buttons Frame
-        special_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
-        special_frame.pack(pady=10)
+            # Special Buttons Frame
+            special_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
+            special_frame.pack(pady=10)
 
-        # Treble Button
-        treble_button = ctk.CTkButton(
-            special_frame, 
-            text="Treble", 
-            width=100, 
-            height=60, 
-            command=lambda: self.set_multiplier('Treble')
-        )
-        treble_button.grid(row=0, column=0, padx=5, pady=5)
+            # Treble Button
+            treble_button = ctk.CTkButton(
+                special_frame, 
+                text="Treble", 
+                width=100, 
+                height=60, 
+                command=lambda: self.set_multiplier('Treble')
+            )
+            treble_button.grid(row=0, column=0, padx=5, pady=5)
 
-        # Double Button
-        double_button = ctk.CTkButton(
-            special_frame, 
-            text="Double", 
-            width=100, 
-            height=60, 
-            command=lambda: self.set_multiplier('Double')
-        )
-        double_button.grid(row=0, column=1, padx=5, pady=5)
+            # Double Button
+            double_button = ctk.CTkButton(
+                special_frame, 
+                text="Double", 
+                width=100, 
+                height=60, 
+                command=lambda: self.set_multiplier('Double')
+            )
+            double_button.grid(row=0, column=1, padx=5, pady=5)
 
-        # 25 Button
-        twenty_five_button = ctk.CTkButton(
-            special_frame, 
-            text="25", 
-            width=100, 
-            height=60, 
-            command=lambda: self.append_score(25)
-        )
-        twenty_five_button.grid(row=1, column=0, padx=5, pady=5)
+            # 25 Button
+            twenty_five_button = ctk.CTkButton(
+                special_frame, 
+                text="25", 
+                width=100, 
+                height=60, 
+                command=lambda: self.append_score(25)
+            )
+            twenty_five_button.grid(row=1, column=0, padx=5, pady=5)
 
-        # 50 Button
-        fifty_button = ctk.CTkButton(
-            special_frame, 
-            text="50", 
-            width=100, 
-            height=60, 
-            command=lambda: self.append_score(50)
-        )
-        fifty_button.grid(row=1, column=1, padx=5, pady=5)
+            # 50 Button
+            fifty_button = ctk.CTkButton(
+                special_frame, 
+                text="50", 
+                width=100, 
+                height=60, 
+                command=lambda: self.append_score(50)
+            )
+            fifty_button.grid(row=1, column=1, padx=5, pady=5)
 
-        # Scores Display
-        self.scores_display = ctk.CTkLabel(
-            self.root, 
-            text=self.get_scores_text(), 
-            font=("Helvetica", 14)
-        )
-        self.scores_display.pack(pady=20)
-
-
-    def append_score(self, value):
-        current_player = self.players[self.current_player_index]
-        current_score = self.scores[current_player]
-
-        # Store previous score in case of a bust
-        self.previous_score = current_score
-
-        # Check for Treble on 25 or 50
-        if (self.multiplier == 3 or self.multiplier == 2) and value in [25, 50]:
-            messagebox.showerror("Invalid Action", "Cannot apply Treble to 25 or 50.")
-            self.multiplier = 1  # Reset multiplier
-            return
-
-        # Calculate the score with multiplier
-        if self.multiplier > 1:
-            score = value * self.multiplier
-            self.last_hit_multiplier = self.multiplier
-            self.multiplier = 1  # Reset multiplier after use
-        else:
-            score = value
-            self.last_hit_multiplier = 1
-
-        # Validate score
-        if score > current_score:
-            messagebox.showerror("Invalid Score", "Score cannot exceed current score.")
-            return
-        elif score == current_score:
-            if self.last_hit_multiplier == 2:
-                messagebox.showinfo("Game Over", f"{current_player} wins!")
-                self.root.destroy()
-                return
-            else:
-                messagebox.showerror("Invalid Finish", "The game must end on a Double.")
-                return
-
-        # Apply the score
-        self.scores[current_player] -= score
-        self.update_display()
-        self.next_dart()
-
-    def submit_score(self):
-        try:
-            score = int(self.score_input.get())
-            player = self.players[self.current_player_index]
-            self.update_stats(player, score)
-            self.switch_player()
-            self.score_input.delete(0, 'end')
-        except ValueError:
-            messagebox.showerror("Invalid Input", "Please enter a valid score.")
-
-    def update_stats(self, player, score):
-        self.darts_thrown[player] += 1
-        self.scores[player] -= score
-        self.avg_score[player] = (301 - self.scores[player]) / self.darts_thrown[player]
-        if score > self.highest_score[player]:
-            self.highest_score[player] = score
-
-        # Update the labels
-        if player == self.players[0]:
-            self.current_score.config(text=str(self.scores[player]))
-            self.darts_thrown_label.config(text=str(self.darts_thrown[player]))
-            self.avg_score_label.config(text=str(round(self.avg_score[player], 2)))
-            self.highest_score_label.config(text=str(self.highest_score[player]))
-        else:
-            self.current_score2.config(text=str(self.scores[player]))
-            self.darts_thrown2_label.config(text=str(self.darts_thrown[player]))
-            self.avg_score2_label.config(text=str(round(self.avg_score[player], 2)))
-            self.highest_score2_label.config(text=str(self.highest_score[player]))
-
-    def switch_player(self):
-        self.current_player_index = (self.current_player_index + 1) % len(self.players)
-        self.update_player_labels()
-
-    def update_player_labels(self):
-        self.player_name.config(text=self.players[self.current_player_index])
-        self.current_score.config(text=str(self.scores[self.players[self.current_player_index]]))
-        self.darts_thrown_label.config(text=str(self.darts_thrown[self.players[self.current_player_index]]))
-        self.avg_score_label.config(text=str(round(self.avg_score[self.players[self.current_player_index]], 2)))
-        self.highest_score_label.config(text=str(self.highest_score[self.players[self.current_player_index]]))
-
-        self.player2_name.config(text=self.players[1])
-        self.current_score2.config(text=str(self.scores[self.players[1]]))
-        self.darts_thrown2_label.config(text=str(self.darts_thrown[self.players[1]]))
-        self.avg_score2_label.config(text=str(round(self.avg_score[self.players[1]], 2)))
-        self.highest_score2_label.config(text=str(self.highest_score[self.players[1]]))
+            # Scores Display
+            self.scores_display = ctk.CTkLabel(
+                self.root, 
+                text=self.get_scores_text(), 
+                font=("Helvetica", 14)
+            )
+            self.scores_display.pack(pady=20)
 
 class MainMenu(ctk.CTk):
     def __init__(self):
