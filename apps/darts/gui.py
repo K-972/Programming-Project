@@ -336,9 +336,12 @@ class ThreeOOne:
             score = value
             self.last_hit_multiplier = 1
 
-        # Validate score
-        if score > current_score:
-            messagebox.showerror("Invalid Score", "Score cannot exceed current score.")
+        # Validate score and check bust
+        if self.scores[current_player] < 0 or (self.scores[current_player] == 1 and self.last_hit_multiplier != 2):
+            messagebox.showinfo("Bust", f"{current_player} busts! Turn skipped.")
+            self.scores[current_player] = self.previous_score  # Reset score to previous
+            self.current_turn_score = 0  # Reset turn score
+            self.switch_turn()  # Skip to next player's turn
             return
         elif score == current_score:
             if self.last_hit_multiplier == 2:
@@ -352,6 +355,9 @@ class ThreeOOne:
         # Apply the score
         self.scores[current_player] -= score
         self.current_turn_score += score  # Add to current turn score
+
+        
+
         self.darts_thrown[current_player] += 1  # Increment darts thrown
 
         # Update average score per dart
@@ -380,10 +386,19 @@ class ThreeOOne:
         self.current_score_label.configure(text=f"Score: {self.scores[current_player]}")
         self.scores_display.configure(text=self.get_scores_text())
         self.current_dart_label.configure(text=f"Dart: {self.current_dart}/3")
-        self.darts_thrown_label.configure(text=str(self.darts_thrown[current_player]))
-        self.avg_score_label.configure(text=f"{self.avg_score[current_player]:.2f}")
-        self.highest_score_label.configure(text=str(self.highest_score[current_player]))
-        self.last_hit_multiplier = 1  # Reset multiplier display if needed
+
+        # Update sidebar stats for all players
+        for player in self.players:
+            if player == self.players[0]:
+                self.current_score.configure(text=str(self.scores[player]))
+                self.darts_thrown_label.configure(text=str(self.darts_thrown[player]))
+                self.avg_score_label.configure(text=f"{self.avg_score[player]:.2f}")
+                self.highest_score_label.configure(text=str(self.highest_score[player]))
+            elif player == self.players[1]:
+                self.current_score2.configure(text=str(self.scores[player]))
+                self.darts_thrown2_label.configure(text=str(self.darts_thrown[player]))
+                self.avg_score2_label.configure(text=f"{self.avg_score[player]:.2f}")
+                self.highest_score2_label.configure(text=str(self.highest_score[player]))
 
     def switch_turn(self):
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
@@ -417,7 +432,7 @@ class ThreeOOne:
             player_name_label.pack(pady=(0, 5))
             self.player_name = ctk.CTkLabel(
                 left_frame, 
-                text=self.players[self.current_player_index], 
+                text=self.players[0], 
                 font=("Arial", 16)
             )
             self.player_name.pack(pady=(0, 10))
@@ -447,7 +462,7 @@ class ThreeOOne:
             current_score_label.pack(pady=(0, 5))
             self.current_score = ctk.CTkLabel(
                 left_frame, 
-                text=str(self.scores[self.players[self.current_player_index]]), 
+                text=str(self.scores[self.players[0]]), 
                 font=("Arial", 16)
             )
             self.current_score.pack(pady=(0, 10))
@@ -462,7 +477,7 @@ class ThreeOOne:
             darts_thrown_label.pack(pady=(0, 5))
             self.darts_thrown_label = ctk.CTkLabel(
                 left_frame, 
-                text=str(self.darts_thrown[self.players[self.current_player_index]]), 
+                text=str(self.darts_thrown[self.players[0]]), 
                 font=("Arial", 16)
             )
             self.darts_thrown_label.pack(pady=(0, 10))
@@ -477,7 +492,7 @@ class ThreeOOne:
             avg_score_label.pack(pady=(0, 5))
             self.avg_score_label = ctk.CTkLabel(
                 left_frame, 
-                text=str(self.avg_score[self.players[self.current_player_index]]), 
+                text=str(self.avg_score[self.players[0]]), 
                 font=("Arial", 16)
             )
             self.avg_score_label.pack(pady=(0, 10))
@@ -492,7 +507,7 @@ class ThreeOOne:
             highest_score_label.pack(pady=(0, 5))
             self.highest_score_label = ctk.CTkLabel(
                 left_frame, 
-                text=str(self.highest_score[self.players[self.current_player_index]]), 
+                text=str(self.highest_score[self.players[0]]), 
                 font=("Arial", 16)
             )
             self.highest_score_label.pack(pady=(0, 10))
