@@ -90,11 +90,9 @@ class DartsGameSetup:
         self.create_widgets()
 
     def create_widgets(self):
-        # Main Frame
         main_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
         main_frame.pack(fill=ctk.BOTH, expand=True, padx=20, pady=20)
 
-        # Top Frame for Back Button
         top_frame = ctk.CTkFrame(main_frame, fg_color="#2c2f31")
         top_frame.pack(fill=ctk.X, pady=(0, 10))
 
@@ -106,13 +104,12 @@ class DartsGameSetup:
             text_color="white",
             hover_color="#3a3d40",
             border_width=0,
-            width=100,  # Increased width
-            height=50,  # Increased height
-            font=("Arial", 16)  # Larger font
+            width=100,
+            height=50,
+            font=("Arial", 16)
         )
         back_button.pack(side=ctk.LEFT)
 
-        # Game Type Selection
         game_type_label = ctk.CTkLabel(
             main_frame, 
             text="Game Type", 
@@ -132,13 +129,12 @@ class DartsGameSetup:
                 text=game, 
                 variable=self.game_type_var, 
                 value=game, 
-                fg_color="#3a3d40",  # Background color of the radio button
+                fg_color="#3a3d40",
                 text_color="white",
                 hover_color="#3a3d40"
             )
             rb.pack(side=ctk.LEFT, padx=10)
 
-        # Sets Selection
         sets_label = ctk.CTkLabel(
             main_frame, 
             text="Sets", 
@@ -151,7 +147,6 @@ class DartsGameSetup:
         sets_entry = ctk.CTkEntry(main_frame, textvariable=self.sets_var, width=200, fg_color="#3a3d40", text_color="white")
         sets_entry.pack(pady=5)
 
-        # Legs Selection
         legs_label = ctk.CTkLabel(
             main_frame, 
             text="Legs", 
@@ -164,7 +159,6 @@ class DartsGameSetup:
         legs_entry = ctk.CTkEntry(main_frame, textvariable=self.legs_var, width=200, fg_color="#3a3d40", text_color="white")
         legs_entry.pack(pady=5)
 
-        # Players Section
         players_label = ctk.CTkLabel(
             main_frame, 
             text="Players", 
@@ -174,7 +168,6 @@ class DartsGameSetup:
         )
         players_label.pack(pady=(20, 10))
 
-        # Button Frame for Add/Remove Player Buttons
         button_frame = ctk.CTkFrame(main_frame, fg_color="#2c2f31")
         button_frame.pack(pady=(0, 10))
 
@@ -200,7 +193,6 @@ class DartsGameSetup:
         )
         remove_player_button.pack(side=ctk.LEFT, padx=10)
 
-        # Scrollable Frame for Player Entries
         scrollable_frame = ctk.CTkScrollableFrame(main_frame, fg_color="#2c2f31")
         scrollable_frame.pack(fill=ctk.BOTH, expand=True, pady=10)
 
@@ -209,7 +201,6 @@ class DartsGameSetup:
         self.add_player_slot()
         self.add_player_slot()
 
-        # Start Button
         start_button = ctk.CTkButton(
             main_frame, 
             text="Start Game", 
@@ -221,7 +212,6 @@ class DartsGameSetup:
         )
         start_button.pack(pady=20)
 
-        # Result Label
         self.result_label = ctk.CTkLabel(
             main_frame, 
             text="", 
@@ -302,46 +292,47 @@ class ThreeOOne:
         self.scores = {player: 301 for player in self.players}
         self.current_player_index = 0
         self.current_dart = 1
-        self.multiplier = 1  # Default multiplier
-        self.last_hit_multiplier = 1  # To track the last hit multiplier
-        self.previous_score = 301  # To store the score before the current dart
+        self.multiplier = 1
+        self.last_hit_multiplier = 1
+        self.previous_score = 301
 
-        # Initialize stats
         self.darts_thrown = {player: 0 for player in self.players}
         self.avg_score = {player: 0.0 for player in self.players}
         self.highest_score = {player: 0 for player in self.players}
-        self.current_turn_score = 0  # To track the score in the current turn
+        self.current_turn_score = 0
 
         self.create_widgets()
+
+    def set_multiplier(self, multiplier_type):
+        if multiplier_type == 'Treble':
+            self.multiplier = 3
+        elif multiplier_type == 'Double':
+            self.multiplier = 2
 
     def append_score(self, value):
         current_player = self.players[self.current_player_index]
         current_score = self.scores[current_player]
 
-        # Store previous score in case of a bust
         self.previous_score = current_score
 
-        # Check for Treble on 25 or 50
         if (self.multiplier == 3 or self.multiplier == 2) and value in [25, 50]:
             messagebox.showerror("Invalid Action", "Cannot apply Treble to 25 or 50.")
-            self.multiplier = 1  # Reset multiplier
+            self.multiplier = 1
             return
 
-        # Calculate the score with multiplier
         if self.multiplier > 1:
             score = value * self.multiplier
             self.last_hit_multiplier = self.multiplier
-            self.multiplier = 1  # Reset multiplier after use
+            self.multiplier = 1
         else:
             score = value
             self.last_hit_multiplier = 1
 
-        # Validate score and check bust
         if self.scores[current_player] < 0 or (self.scores[current_player] == 1 and self.last_hit_multiplier != 2):
             messagebox.showinfo("Bust", f"{current_player} busts! Turn skipped.")
-            self.scores[current_player] = self.previous_score  # Reset score to previous
-            self.current_turn_score = 0  # Reset turn score
-            self.switch_turn()  # Skip to next player's turn
+            self.scores[current_player] = self.previous_score
+            self.current_turn_score = 0
+            self.switch_turn()
             return
         elif score == current_score:
             if self.last_hit_multiplier == 2:
@@ -352,19 +343,14 @@ class ThreeOOne:
                 messagebox.showerror("Invalid Finish", "The game must end on a Double.")
                 return
 
-        # Apply the score
         self.scores[current_player] -= score
-        self.current_turn_score += score  # Add to current turn score
+        self.current_turn_score += score
 
-        
+        self.darts_thrown[current_player] += 1
 
-        self.darts_thrown[current_player] += 1  # Increment darts thrown
-
-        # Update average score per dart
         total_score = 301 - self.scores[current_player]
         self.avg_score[current_player] = total_score / self.darts_thrown[current_player]
 
-        # Update highest score in a turn
         if self.current_turn_score > self.highest_score[current_player]:
             self.highest_score[current_player] = self.current_turn_score
 
@@ -376,7 +362,7 @@ class ThreeOOne:
             self.current_dart += 1
         else:
             self.current_dart = 1
-            self.current_turn_score = 0  # Reset turn score
+            self.current_turn_score = 0
             self.switch_turn()
         self.current_dart_label.configure(text=f"Dart: {self.current_dart}/3")
 
@@ -387,7 +373,6 @@ class ThreeOOne:
         self.scores_display.configure(text=self.get_scores_text())
         self.current_dart_label.configure(text=f"Dart: {self.current_dart}/3")
 
-        # Update sidebar stats for all players
         for player in self.players:
             if player == self.players[0]:
                 self.current_score.configure(text=str(self.scores[player]))
@@ -418,11 +403,9 @@ class ThreeOOne:
         if num_of_players == 2:
             self.player_frames = []
 
-            # Left Frame for Player 1
             left_frame = ctk.CTkFrame(self.root, width=200, fg_color="#2c2f31")
             left_frame.pack(side="left", fill="y", padx=10, pady=20)
 
-            # Player 1 Name Label
             player_name_label = ctk.CTkLabel(
                 left_frame, 
                 text="Player Name:", 
@@ -437,7 +420,6 @@ class ThreeOOne:
             )
             self.player_name.pack(pady=(0, 10))
 
-            # Finish Label for Player 1
             finish_label = ctk.CTkLabel(
                 left_frame, 
                 text="Finish:", 
@@ -452,7 +434,6 @@ class ThreeOOne:
             )
             self.finish.pack(pady=(0, 10))
 
-            # Current Score Label for Player 1
             current_score_label = ctk.CTkLabel(
                 left_frame, 
                 text="Current Score:", 
@@ -467,7 +448,6 @@ class ThreeOOne:
             )
             self.current_score.pack(pady=(0, 10))
 
-            # Darts Thrown Label for Player 1
             darts_thrown_label = ctk.CTkLabel(
                 left_frame, 
                 text="Darts Thrown:", 
@@ -482,7 +462,6 @@ class ThreeOOne:
             )
             self.darts_thrown_label.pack(pady=(0, 10))
 
-            # Average Score per Dart Label for Player 1
             avg_score_label = ctk.CTkLabel(
                 left_frame, 
                 text="Avg Score/Dart:", 
@@ -497,7 +476,6 @@ class ThreeOOne:
             )
             self.avg_score_label.pack(pady=(0, 10))
 
-            # Highest Score in a Turn Label for Player 1
             highest_score_label = ctk.CTkLabel(
                 left_frame, 
                 text="Highest Score:", 
@@ -512,11 +490,9 @@ class ThreeOOne:
             )
             self.highest_score_label.pack(pady=(0, 10))
 
-            # Right Frame for Player 2
             right_frame = ctk.CTkFrame(self.root, width=200, fg_color="#2c2f31")
             right_frame.pack(side="right", fill="y", padx=10, pady=20)
 
-            # Player 2 Name Label
             player2_name_label = ctk.CTkLabel(
                 right_frame, 
                 text="Player Name:", 
@@ -531,7 +507,6 @@ class ThreeOOne:
             )
             self.player2_name.pack(pady=(0, 10))
 
-            # Finish Label for Player 2
             finish2_label = ctk.CTkLabel(
                 right_frame, 
                 text="Finish:", 
@@ -546,7 +521,6 @@ class ThreeOOne:
             )
             self.finish2.pack(pady=(0, 10))
 
-            # Current Score Label for Player 2
             current_score2_label = ctk.CTkLabel(
                 right_frame, 
                 text="Current Score:", 
@@ -561,7 +535,6 @@ class ThreeOOne:
             )
             self.current_score2.pack(pady=(0, 10))
 
-            # Darts Thrown Label for Player 2
             darts_thrown2_label = ctk.CTkLabel(
                 right_frame, 
                 text="Darts Thrown:", 
@@ -576,7 +549,6 @@ class ThreeOOne:
             )
             self.darts_thrown2_label.pack(pady=(0, 10))
 
-            # Average Score per Dart Label for Player 2
             avg_score2_label = ctk.CTkLabel(
                 right_frame, 
                 text="Avg Score/Dart:", 
@@ -591,7 +563,6 @@ class ThreeOOne:
             )
             self.avg_score2_label.pack(pady=(0, 10))
 
-            # Highest Score in a Turn Label for Player 2
             highest_score2_label = ctk.CTkLabel(
                 right_frame, 
                 text="Highest Score:", 
@@ -804,7 +775,6 @@ class MainMenu(ctk.CTk):
         ctk.set_appearance_mode(selected_theme)
         
         volume = self.volume_slider.get()
-        # Implement actual volume control logic here
         print(f"Theme set to {selected_theme}, Volume set to {volume}")
 
         window.destroy()
@@ -812,16 +782,14 @@ class MainMenu(ctk.CTk):
     def quit_application(self):
         self.destroy()
 
-# Example navigation function to go back to MainMenu
 def go_back_to_main_menu(self):
-    self.destroy()  # Destroy the current window
+    self.destroy()
     main_menu = MainMenu()
-    # Remove the following line to prevent multiple mainloops
     main_menu.mainloop()
 
 if __name__ == "__main__":
-    ctk.set_appearance_mode("dark")  # Optional: set appearance mode to dark
-    ctk.set_default_color_theme("blue")  # Optional: set default color theme
+    ctk.set_appearance_mode("dark")
+    ctk.set_default_color_theme("blue")
 
     app = MainMenu()
     app.mainloop()
