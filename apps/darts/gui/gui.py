@@ -3,13 +3,11 @@ from tkinter import messagebox
 import random
 from dartlogic import Game
 
-
-
 class MainGame:
     def __init__(self, root, game_options, start_number) -> None:
         self.root = root
         self.root.title(start_number)
-        self.root.geometry("800x600")
+        self.root.geometry("1280x720")
         self.root.configure(bg="#2c2f31")
         self.root.attributes("-fullscreen", True)
         self.start_number = start_number
@@ -18,6 +16,8 @@ class MainGame:
         self.game_options = game_options
 
         self.game = Game(self.players, start_number)
+        self.current_dart_scores = []  # Track scores for the current turn
+        self.multiplier = 1  # Initialize multiplier with default value
 
         self.create_widgets()
 
@@ -28,314 +28,341 @@ class MainGame:
             self.multiplier = 3
         elif multiplier_type == 'Double':
             self.multiplier = 2
+        else:
+            self.multiplier = 1
 
-    def update_display(self):
+    def miss(self):
+        self.turn(0, 1)
+
+    def undo(self):
+        # Handle undo action
+        if self.current_dart_scores:
+            last_score = self.current_dart_scores.pop()
+            self.game.undo_last_turn(last_score)
+            self.update_ui()
+            print("Undo last action")
+
+    def confirm_score(self):
+        # Handle confirm score action
+        print("Score confirmed")
+        self.next_turn()
+
+    def turn(self, score, multiplier):
+        self.current_dart_scores.append((score, multiplier))
+        turn_over, winner = self.game.turn(score, multiplier)
+        self.update_ui()
+        self.multiplier = 1  # Reset multiplier after every throw
+        if winner:
+            self.show_winner_popup(winner)
+        elif turn_over:
+            self.show_confirm_button()
+
+    def show_confirm_button(self):
+        self.confirm_button.grid(row=7, column=0, columnspan=2, padx=5, pady=10)
+
+    def next_turn(self):
+        self.confirm_button.grid_forget()
+        self.current_dart_scores = []  # Reset dart scores for the next turn
+        self.game.switch_player()
+        self.update_ui()
+
+    def update_ui(self):
         current_player = self.game.players[self.game.current_player]
-        print(f"Current Player: {current_player}")
-        print(f"Current Player.name: {current_player.name}")
         self.current_player_label.configure(text=f"Current Player: {current_player.name}")
-        self.current_score_label.configure(text=f"Score: {self.game.players[self.game.current_player].score}")
-        self.scores_display.configure(text=self.get_scores_text())
-        self.current_dart_label.configure(text=f"Dart: {self.game.num_of_darts}/3")
+        self.current_score_label.configure(text=f"Score: {current_player.score}")
 
-        for player in self.players:
-            if player == self.players[0]:
-                self.current_score.configure(text=str(self.scores[player]))
-                self.darts_thrown_label.configure(text=str(self.darts_thrown[player]))
-                self.avg_score_label.configure(text=f"{self.avg_score[player]:.2f}")
-                self.highest_score_label.configure(text=str(self.highest_score[player]))
-            elif player == self.players[1]:
-                self.current_score2.configure(text=str(self.scores[player]))
-                self.darts_thrown2_label.configure(text=str(self.darts_thrown[player]))
-                self.avg_score2_label.configure(text=f"{self.avg_score[player]:.2f}")
-                self.highest_score2_label.configure(text=str(self.highest_score[player]))
+        # Calculate and update finish
+        finishes = self.game.calculate_finishes(current_player.score)
+        finish_text = ", ".join(["-".join(finish) for finish in finishes[:3]])  # Show up to 3 finishes
+        self.finish_label.configure(text=f"Finish: {finish_text}")
 
-    def get_scores_text(self):
-        return "\n".join([f"{player}: {score}" for player, score in self.scores.items()])
+        # Update dart scores
+        dart_scores = [f"Dart {i+1}: {score * multiplier}" for i, (score, multiplier) in enumerate(self.current_dart_scores)]
+        self.dart1_label.configure(text=dart_scores[0] if len(dart_scores) > 0 else "Dart 1: 0")
+        self.dart2_label.configure(text=dart_scores[1] if len(dart_scores) > 1 else "Dart 2: 0")
+        self.dart3_label.configure(text=dart_scores[2] if len(dart_scores) > 2 else "Dart 3: 0")
+
+        # Update player frames
+        for i, player in enumerate(self.game.players):
+            self.player_frames[i]['current_score_value'].configure(text=str(player.score))
 
     def create_widgets(self):
         num_of_players = len(self.players)
-        if num_of_players == 2:
-            self.player_frames = []
+        self.player_frames = []
 
-            left_frame = ctk.CTkFrame(self.root, width=200, fg_color="#2c2f31")
-            left_frame.pack(side="left", fill="y", padx=10, pady=20, expand=True)
+        # Adjust font size based on the number of players
+        label_font_size = 16
+        value_font_size = 18
+        if num_of_players > 6:
+            label_font_size = 14
+            value_font_size = 16
+        if num_of_players > 10:
+            label_font_size = 12
+            value_font_size = 14
 
-            player_name_label = ctk.CTkLabel(
-                left_frame, 
-                text="Player Name:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            player_name_label.pack(pady=(0, 5))
-            self.player_name = ctk.CTkLabel(
-                left_frame, 
-                text=self.game.players[0].name, 
-                font=("Arial", 16)
-            )
-            self.player_name.pack(pady=(0, 10))
+        # Configure grid weights for dynamic resizing
+        for i in range(2):  # Assuming a maximum of 2 rows
+            self.root.grid_rowconfigure(i, weight=1)
+        for i in range((num_of_players + 1) // 2):  # Number of columns needed
+            self.root.grid_columnconfigure(i, weight=1)
 
-            finish_label = ctk.CTkLabel(
-                left_frame, 
-                text="Finish:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            finish_label.pack(pady=(0, 5))
-            self.finish = ctk.CTkLabel(
-                left_frame, 
-                text="0", 
-                font=("Arial", 16)
-            )
-            self.finish.pack(pady=(0, 10))
+        # Player frames on the left
+        for i in range(num_of_players):
+            player_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
+            player_frame.grid(row=i % 2, column=i // 2, padx=10, pady=20, sticky="nsew")
 
-            current_score_label = ctk.CTkLabel(
-                left_frame, 
-                text="Current Score:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            current_score_label.pack(pady=(0, 5))
-            self.current_score = ctk.CTkLabel(
-                left_frame, 
-                text=str(self.game.players[0].score), 
-                font=("Arial", 16)
-            )
-            self.current_score.pack(pady=(0, 10))
+            player_frame.grid_rowconfigure(0, weight=1)
+            player_frame.grid_rowconfigure(1, weight=1)
+            player_frame.grid_rowconfigure(2, weight=1)
+            player_frame.grid_rowconfigure(3, weight=1)
+            player_frame.grid_rowconfigure(4, weight=1)
+            player_frame.grid_rowconfigure(5, weight=1)
+            player_frame.grid_rowconfigure(6, weight=1)
+            player_frame.grid_rowconfigure(7, weight=1)
+            player_frame.grid_rowconfigure(8, weight=1)
+            player_frame.grid_rowconfigure(9, weight=1)
+            player_frame.grid_columnconfigure(0, weight=1)
+            player_frame.grid_columnconfigure(1, weight=1)
 
-            darts_thrown_label = ctk.CTkLabel(
-                left_frame, 
-                text="Darts Thrown:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            darts_thrown_label.pack(pady=(0, 5))
-            self.darts_thrown_label = ctk.CTkLabel(
-                left_frame, 
-                text=self.game.players[0].darts_thrown, 
-                font=("Arial", 16)
-            )
-            self.darts_thrown_label.pack(pady=(0, 10))
-
-            avg_score_label = ctk.CTkLabel(
-                left_frame, 
-                text="Avg Score/Dart:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            avg_score_label.pack(pady=(0, 5))
-            self.avg_score_label = ctk.CTkLabel(
-                left_frame, 
-                text=str(0), 
-                font=("Arial", 16)
-            )
-            self.avg_score_label.pack(pady=(0, 10))
-
-            highest_score_label = ctk.CTkLabel(
-                left_frame, 
-                text="Highest Score:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            highest_score_label.pack(pady=(0, 5))
-            self.highest_score_label = ctk.CTkLabel(
-                left_frame, 
-                text=str(0), 
-                font=("Arial", 16)
-            )
-            self.highest_score_label.pack(pady=(0, 10))
-
-            right_frame = ctk.CTkFrame(self.root, width=200, fg_color="#2c2f31")
-            right_frame.pack(side="right", fill="y", padx=10, pady=20, expand=True)
-
-            player2_name_label = ctk.CTkLabel(
-                right_frame, 
-                text="Player Name:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            player2_name_label.pack(pady=(0, 5))
-            self.player2_name = ctk.CTkLabel(
-                right_frame, 
-                text=self.game.players[1].name, 
-                font=("Arial", 16)
-            )
-            self.player2_name.pack(pady=(0, 10))
-
-            finish2_label = ctk.CTkLabel(
-                right_frame, 
-                text="Finish:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            finish2_label.pack(pady=(0, 5))
-            self.finish2 = ctk.CTkLabel(
-                right_frame, 
-                text="0", 
-                font=("Arial", 16)
-            )
-            self.finish2.pack(pady=(0, 10))
-
-            current_score2_label = ctk.CTkLabel(
-                right_frame, 
-                text="Current Score:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            current_score2_label.pack(pady=(0, 5))
-            self.current_score2 = ctk.CTkLabel(
-                right_frame, 
-                text=str(self.game.players[1].score), 
-                font=("Arial", 16)
-            )
-            self.current_score2.pack(pady=(0, 10))
-
-            darts_thrown2_label = ctk.CTkLabel(
-                right_frame, 
-                text="Darts Thrown:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            darts_thrown2_label.pack(pady=(0, 5))
-            self.darts_thrown2_label = ctk.CTkLabel(
-                right_frame, 
-                text=self.game.players[1].darts_thrown, 
-                font=("Arial", 16)
-            )
-            self.darts_thrown2_label.pack(pady=(0, 10))
-
-            avg_score2_label = ctk.CTkLabel(
-                right_frame, 
-                text="Avg Score/Dart:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            avg_score2_label.pack(pady=(0, 5))
-            self.avg_score2_label = ctk.CTkLabel(
-                right_frame, 
-                text=str(0), 
-                font=("Arial", 16)
-            )
-            self.avg_score2_label.pack(pady=(0, 10))
-
-            highest_score2_label = ctk.CTkLabel(
-                right_frame, 
-                text="Highest Score:", 
-                text_color="white", 
-                font=("Arial", 20, "bold")
-            )
-            highest_score2_label.pack(pady=(0, 5))
-            self.highest_score2_label = ctk.CTkLabel(
-                right_frame, 
-                text=str(0), 
-                font=("Arial", 16)
-            )
-            self.highest_score2_label.pack(pady=(0, 10))
-
-            label = ctk.CTkLabel(
-                self.root, 
-                text=f"Welcome to {self.start_number} Game!", 
-                fg_color="#2c2f31", 
-                text_color="white", 
-                font=("Arial", 24, "bold")
-            )
-            label.pack(pady=20)
-
-            # Current Player Label
-            self.current_player_label = ctk.CTkLabel(
-                self.root, 
-                text=f"Current Player: {self.game.players[self.game.current_player].name}", 
-                font=("Helvetica", 18)
-            )
-            self.current_player_label.pack(pady=10)
-
-            # Current Score Label
-            self.current_score_label = ctk.CTkLabel(
-                self.root, 
-                text=f"Score: {self.game.players[self.game.current_player].score}", 
-                font=("Helvetica", 16)
-            )
-            self.current_score_label.pack(pady=5)
-
-            # Current Dart Label
-            self.current_dart_label = ctk.CTkLabel(
-                self.root, 
-                text=f"Dart: {self.game.num_of_darts}/3", 
-                font=("Helvetica", 16, "bold")
-            )
-            self.current_dart_label.pack(pady=5)
-
-            # Number Pad Frame
-            keypad_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
-            keypad_frame.pack(pady=10)
-
-            # Number Buttons 1-20
-            numbers = list(range(1, 21))
-            rows = 4
-            cols = 5
-            for index, number in enumerate(numbers):
-                row = index // cols
-                col = index % cols
-                button = ctk.CTkButton(
-                    keypad_frame, 
-                    text=str(number), 
-                    width=60, 
-                    height=60, 
-                    command=lambda num=number: self.game.turn(num, self.multiplier)
+            def create_label_value_pair(row, label_text, value_text):
+                label = ctk.CTkLabel(
+                    player_frame, 
+                    text=label_text, 
+                    text_color="white", 
+                    font=("Arial", label_font_size, "bold")
                 )
-                button.grid(row=row, column=col, padx=5, pady=5)
+                label.grid(row=row, column=0, pady=(0, 5), sticky="w")
+                value = ctk.CTkLabel(
+                    player_frame, 
+                    text=value_text, 
+                    font=("Arial", value_font_size)
+                )
+                value.grid(row=row, column=1, pady=(0, 5), sticky="w")
+                return label, value
 
-            # Special Buttons Frame
-            special_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
-            special_frame.pack(pady=10)
+            player_name_label, player_name_value = create_label_value_pair(0, "Player Name:", self.game.players[i].name)
+            finish_label, finish_value = create_label_value_pair(1, "Finish:", "0")
+            current_score_label, current_score_value = create_label_value_pair(2, "Current Score:", str(self.game.players[i].score))
+            darts_thrown_label, darts_thrown_value = create_label_value_pair(3, "Darts Thrown:", str(random.randint(10, 30)))
+            avg_score_label, avg_score_value = create_label_value_pair(4, "Avg Score:", f"{random.uniform(20.0, 60.0):.2f}")
+            highest_score_label, highest_score_value = create_label_value_pair(5, "Highest Score:", str(random.randint(50, 180)))
+            win_rate_label, win_rate_value = create_label_value_pair(6, "Win Rate:", f"{random.uniform(0.0, 100.0):.2f}%")
+            games_played_label, games_played_value = create_label_value_pair(7, "Games Played:", str(random.randint(1, 100)))
+            avg_darts_per_leg_label, avg_darts_per_leg_value = create_label_value_pair(8, "Avg Darts/Leg:", f"{random.uniform(10.0, 30.0):.2f}")
 
-            # Treble Button
-            treble_button = ctk.CTkButton(
-                special_frame, 
-                text="Treble", 
-                width=100, 
+            self.player_frames.append({
+                'frame': player_frame,
+                'player_name_label': player_name_label,
+                'player_name_value': player_name_value,
+                'finish_label': finish_label,
+                'finish_value': finish_value,
+                'current_score_label': current_score_label,
+                'current_score_value': current_score_value,
+                'darts_thrown_label': darts_thrown_label,
+                'darts_thrown_value': darts_thrown_value,
+                'avg_score_label': avg_score_label,
+                'avg_score_value': avg_score_value,
+                'highest_score_label': highest_score_label,
+                'highest_score_value': highest_score_value,
+                'win_rate_label': win_rate_label,
+                'win_rate_value': win_rate_value,
+                'games_played_label': games_played_label,
+                'games_played_value': games_played_value,
+                'avg_darts_per_leg_label': avg_darts_per_leg_label,
+                'avg_darts_per_leg_value': avg_darts_per_leg_value
+            })
+
+        # Scoring system on the right
+        scoring_frame = ctk.CTkFrame(self.root, fg_color="#2c2f31")
+        scoring_frame.grid(row=0, column=(num_of_players + 1) // 2, rowspan=2, padx=10, pady=20, sticky="nsew")
+
+        label = ctk.CTkLabel(
+            scoring_frame, 
+            text=f"Welcome to {self.start_number} Game!", 
+            fg_color="#2c2f31", 
+            text_color="white", 
+            font=("Arial", 24, "bold")
+        )
+        label.grid(row=0, column=0, columnspan=2, pady=20)
+
+        # Current Player Label
+        self.current_player_label = ctk.CTkLabel(
+            scoring_frame, 
+            text=f"Current Player: {self.game.players[self.game.current_player].name}", 
+            font=("Helvetica", 18)
+        )
+        self.current_player_label.grid(row=1, column=0, columnspan=2, pady=10)
+
+        # Current Score Label
+        self.current_score_label = ctk.CTkLabel(
+            scoring_frame, 
+            text=f"Score: {self.game.players[self.game.current_player].score}", 
+            font=("Helvetica", 16)
+        )
+        self.current_score_label.grid(row=2, column=0, columnspan=2, pady=5)
+
+        # Finish Label
+        self.finish_label = ctk.CTkLabel(
+            scoring_frame, 
+            text="Finish: 0", 
+            font=("Helvetica", 16)
+        )
+        self.finish_label.grid(row=3, column=0, columnspan=2, pady=5)
+
+        # Dart Scores Labels
+        self.dart1_label = ctk.CTkLabel(
+            scoring_frame, 
+            text="Dart 1: 0", 
+            font=("Helvetica", 16)
+        )
+        self.dart1_label.grid(row=4, column=0, columnspan=2, pady=5)
+
+        self.dart2_label = ctk.CTkLabel(
+            scoring_frame, 
+            text="Dart 2: 0", 
+            font=("Helvetica", 16)
+        )
+        self.dart2_label.grid(row=5, column=0, columnspan=2, pady=5)
+
+        self.dart3_label = ctk.CTkLabel(
+            scoring_frame, 
+            text="Dart 3: 0", 
+            font=("Helvetica", 16)
+        )
+        self.dart3_label.grid(row=6, column=0, columnspan=2, pady=5)
+
+        # Buttons Frame
+        buttons_frame = ctk.CTkFrame(scoring_frame, fg_color="#2c2f31")
+        buttons_frame.grid(row=7, column=0, columnspan=2, pady=10)
+
+        # Miss Button
+        miss_button = ctk.CTkButton(
+            buttons_frame, 
+            text="Miss", 
+            width=80, 
+            height=40, 
+            command=self.miss
+        )
+        miss_button.grid(row=0, column=0, padx=5, pady=5)
+
+        # Undo Button
+        undo_button = ctk.CTkButton(
+            buttons_frame, 
+            text="Undo", 
+            width=80, 
+            height=40, 
+            command=self.undo
+        )
+        undo_button.grid(row=0, column=1, padx=5, pady=5)
+
+        # Confirm Score Button
+        self.confirm_button = ctk.CTkButton(
+            buttons_frame, 
+            text="Confirm", 
+            width=80, 
+            height=40, 
+            command=self.confirm_score
+        )
+        self.confirm_button.grid(row=0, column=2, padx=5, pady=5)
+        self.confirm_button.grid_forget()  # Hide the confirm button initially
+
+        # Number Pad Frame
+        keypad_frame = ctk.CTkFrame(scoring_frame, fg_color="#2c2f31")
+        keypad_frame.grid(row=8, column=0, columnspan=2, pady=10)
+
+        # Number Buttons 1-20
+        numbers = list(range(1, 21))
+        rows = 4
+        cols = 5
+        for index, number in enumerate(numbers):
+            row = index // cols
+            col = index % cols
+            button = ctk.CTkButton(
+                keypad_frame, 
+                text=str(number), 
+                width=60, 
                 height=60, 
-                command=lambda: self.set_multiplier('Treble')
+                command=lambda num=number: self.turn(num, self.multiplier)
             )
-            treble_button.grid(row=0, column=0, padx=5, pady=5)
+            button.grid(row=row, column=col, padx=5, pady=5)
 
-            # Double Button
-            double_button = ctk.CTkButton(
-                special_frame, 
-                text="Double", 
-                width=100, 
-                height=60, 
-                command=lambda: self.set_multiplier('Double')
-            )
-            double_button.grid(row=0, column=1, padx=5, pady=5)
+        # Special Buttons Frame
+        special_frame = ctk.CTkFrame(scoring_frame, fg_color="#2c2f31")
+        special_frame.grid(row=9, column=0, columnspan=2, pady=10)
 
-            # 25 Button
-            twenty_five_button = ctk.CTkButton(
-                special_frame, 
-                text="25", 
-                width=100, 
-                height=60, 
-                command=lambda: self.game.turn(25, 1)
-            )
-            twenty_five_button.grid(row=1, column=0, padx=5, pady=5)
+        # Treble Button
+        treble_button = ctk.CTkButton(
+            special_frame, 
+            text="Treble", 
+            width=100, 
+            height=60, 
+            command=lambda: self.set_multiplier('Treble')
+        )
+        treble_button.grid(row=0, column=0, padx=5, pady=5)
 
-            # 50 Button
-            fifty_button = ctk.CTkButton(
-                special_frame, 
-                text="50", 
-                width=100, 
-                height=60, 
-                command=lambda: self.game.turn(50, 1)
-            )
-            fifty_button.grid(row=1, column=1, padx=5, pady=5)
+        # Double Button
+        double_button = ctk.CTkButton(
+            special_frame, 
+            text="Double", 
+            width=100, 
+            height=60, 
+            command=lambda: self.set_multiplier('Double')
+        )
+        double_button.grid(row=0, column=1, padx=5, pady=5)
 
-            # Scores Display
-            self.scores_display = ctk.CTkLabel(
-                self.root, 
-                text=self.get_scores_text(), 
-                font=("Helvetica", 14)
-            )
-            self.scores_display.pack(pady=20)
+        # 25 Button
+        twenty_five_button = ctk.CTkButton(
+            special_frame, 
+            text="25", 
+            width=100, 
+            height=60, 
+            command=lambda: self.turn(25, 1)
+        )
+        twenty_five_button.grid(row=1, column=0, padx=5, pady=5)
+
+        # 50 Button
+        fifty_button = ctk.CTkButton(
+            special_frame, 
+            text="50", 
+            width=100, 
+            height=60, 
+            command=lambda: self.turn(50, 1)
+        )
+        fifty_button.grid(row=1, column=1, padx=5, pady=5)
+
+    def show_bust_popup(self):
+        messagebox.showinfo("Bust!", "You have busted! Next player's turn.")
+
+    def show_winner_popup(self, winner):
+        messagebox.showinfo("Winner!", f"{winner.name} wins the game!")
+        self.root.quit()
+
+    def next_turn(self):
+        self.confirm_button.grid_forget()
+        self.current_dart_scores = []  # Reset dart scores for the next turn
+        self.game.switch_player()
+        self.update_ui()
+
+    def update_ui(self):
+        current_player = self.game.players[self.game.current_player]
+        self.current_player_label.configure(text=f"Current Player: {current_player.name}")
+        self.current_score_label.configure(text=f"Score: {current_player.score}")
+        self.finish_label.configure(text=f"Finish: {current_player.score}")
+
+        # Update dart scores
+        dart_scores = [f"Dart {i+1}: {score * multiplier}" for i, (score, multiplier) in enumerate(self.current_dart_scores)]
+        self.dart1_label.configure(text=dart_scores[0] if len(dart_scores) > 0 else "Dart 1: 0")
+        self.dart2_label.configure(text=dart_scores[1] if len(dart_scores) > 1 else "Dart 2: 0")
+        self.dart3_label.configure(text=dart_scores[2] if len(dart_scores) > 2 else "Dart 3: 0")
+
+        # Reset dart scores for the new turn
+        self.dart1_label.configure(text="Dart 1: 0")
+        self.dart2_label.configure(text="Dart 2: 0")
+        self.dart3_label.configure(text="Dart 3: 0")
+
+        # Update player frames
+        for i, player in enumerate(self.game.players):
+            self.player_frames[i]['current_score_value'].configure(text=str(player.score))
 
 class Settings:
     def __init__(self, root):
@@ -556,6 +583,9 @@ class DartsGameSetup:
         self.result_label.pack(pady=5)
 
     def add_player_slot(self):
+        if len(self.player_entries) >= 12:
+            messagebox.showerror("Error", "Maximum number of players is 12.")
+            return
         player_var = ctk.StringVar()
         player_entry = ctk.CTkEntry(self.players_frame, textvariable=player_var, width=300, fg_color="#3a3d40", text_color="white")
         player_entry.pack(pady=5)
@@ -568,6 +598,10 @@ class DartsGameSetup:
                 self.players_frame.winfo_children()[-1].destroy()
 
     def start_game(self):
+        for player in self.player_entries:
+            if len(player.get()) > 15:
+                messagebox.showerror("Error", "Player names must be 15 characters or less.")
+                return
         game_type = self.game_type_var.get()
         if game_type == "ATC":
             game_type = "Around The Clock"
