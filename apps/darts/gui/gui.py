@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
-import random
 from dartlogic import Game
+from proiles import Profiles
 
 class MainGame:
     def __init__(self, root, game_options, start_number) -> None:
@@ -38,7 +38,7 @@ class MainGame:
         # Handle undo action
         if self.current_dart_scores:
             last_score = self.current_dart_scores.pop()
-            self.game.undo_last_turn(last_score)
+            self.game.undo_last_turn()
             self.update_ui()
             print("Undo last action")
 
@@ -48,17 +48,27 @@ class MainGame:
         self.next_turn()
 
     def turn(self, score, multiplier):
+        if len(self.current_dart_scores) >= 3:
+            messagebox.showinfo("Turn Over", "Please press the Confirm button to proceed to the next turn.")
+            return
+
         self.current_dart_scores.append((score, multiplier))
-        turn_over, winner = self.game.turn(score, multiplier)
+        turn_over, winner, Bust = self.game.turn(score, multiplier)
         self.update_ui()
         self.multiplier = 1  # Reset multiplier after every throw
         if winner:
             self.show_winner_popup(winner)
+        elif Bust:
+            self.show_bust_popup()
         elif turn_over:
+            self.show_confirm_button()
+        elif len(self.current_dart_scores) == 3:
             self.show_confirm_button()
 
     def show_confirm_button(self):
+        print("Showing confirm button")  # Debugging line
         self.confirm_button.grid(row=7, column=0, columnspan=2, padx=5, pady=10)
+        self.root.update_idletasks()  # Force the GUI to update
 
     def next_turn(self):
         self.confirm_button.grid_forget()
@@ -72,8 +82,11 @@ class MainGame:
         self.current_score_label.configure(text=f"Score: {current_player.score}")
 
         # Calculate and update finish
-        finishes = self.game.calculate_finishes(current_player.score)
-        finish_text = ", ".join(["-".join(finish) for finish in finishes[:3]])  # Show up to 3 finishes
+        finishes = self.game.return_set_finishes(current_player.score)
+        if finishes:
+            finish_text = ", ".join(["-".join(finish) for finish in finishes[:3]])  # Show up to 3 finishes
+        else:
+            finish_text = "N/A"
         self.finish_label.configure(text=f"Finish: {finish_text}")
 
         # Update dart scores
@@ -85,6 +98,12 @@ class MainGame:
         # Update player frames
         for i, player in enumerate(self.game.players):
             self.player_frames[i]['current_score_value'].configure(text=str(player.score))
+            self.player_frames[i]['darts_thrown_value'].configure(text=str(player.darts_thrown))
+            self.player_frames[i]['avg_score_per_dart_value'].configure(text=f"{player.avg_score_per_dart:.2f}")
+            self.player_frames[i]['highest_score_value'].configure(text=str(player.highest_3_dart_score))
+            self.player_frames[i]['lowest_score_value'].configure(text=f"{player.standard_deviation:.2f}")
+            self.player_frames[i]['most_hit_value'].configure(text=str(player.most_spot_hit))
+            self.player_frames[i]['standard_deviation_value'].configure(text=f"{player.standard_deviation:.2f}")
 
     def create_widgets(self):
         num_of_players = len(self.players)
@@ -140,15 +159,16 @@ class MainGame:
                 value.grid(row=row, column=1, pady=(0, 5), sticky="w")
                 return label, value
 
-            player_name_label, player_name_value = create_label_value_pair(0, "Player Name:", self.game.players[i].name)
+            player = self.game.players[i]
+            player_name_label, player_name_value = create_label_value_pair(0, "Player Name:", player.name)
             finish_label, finish_value = create_label_value_pair(1, "Finish:", "0")
-            current_score_label, current_score_value = create_label_value_pair(2, "Current Score:", str(self.game.players[i].score))
-            darts_thrown_label, darts_thrown_value = create_label_value_pair(3, "Darts Thrown:", str(random.randint(10, 30)))
-            avg_score_label, avg_score_value = create_label_value_pair(4, "Avg Score:", f"{random.uniform(20.0, 60.0):.2f}")
-            highest_score_label, highest_score_value = create_label_value_pair(5, "Highest Score:", str(random.randint(50, 180)))
-            win_rate_label, win_rate_value = create_label_value_pair(6, "Win Rate:", f"{random.uniform(0.0, 100.0):.2f}%")
-            games_played_label, games_played_value = create_label_value_pair(7, "Games Played:", str(random.randint(1, 100)))
-            avg_darts_per_leg_label, avg_darts_per_leg_value = create_label_value_pair(8, "Avg Darts/Leg:", f"{random.uniform(10.0, 30.0):.2f}")
+            current_score_label, current_score_value = create_label_value_pair(2, "Current Score:", str(player.score))
+            darts_thrown_label, darts_thrown_value = create_label_value_pair(3, "Darts Thrown:", str(player.darts_thrown))
+            avg_score_per_dart_label, avg_score_per_dart_value = create_label_value_pair(4, "Avg Score /dart:", f"{player.avg_score_per_dart:.2f}")
+            lowest_score_label, lowest_score_value = create_label_value_pair(6, "Avg Score 3 dart:", f"{player.most_spot_hit:.2f}%")
+            highest_score_label, highest_score_value = create_label_value_pair(5, "Highest Score:", str(player.highest_3_dart_score))
+            most_hit_label, most_hit_value = create_label_value_pair(7, "Most Hit:", str(player.most_spot_hit))
+            standard_deviation_label, standard_deviation_value = create_label_value_pair(8, "Standard dev:", f"{player.standard_deviation:.2f}")
 
             self.player_frames.append({
                 'frame': player_frame,
@@ -160,16 +180,16 @@ class MainGame:
                 'current_score_value': current_score_value,
                 'darts_thrown_label': darts_thrown_label,
                 'darts_thrown_value': darts_thrown_value,
-                'avg_score_label': avg_score_label,
-                'avg_score_value': avg_score_value,
+                'avg_score_per_dart_label': avg_score_per_dart_label,
+                'avg_score_per_dart_value': avg_score_per_dart_value,
                 'highest_score_label': highest_score_label,
                 'highest_score_value': highest_score_value,
-                'win_rate_label': win_rate_label,
-                'win_rate_value': win_rate_value,
-                'games_played_label': games_played_label,
-                'games_played_value': games_played_value,
-                'avg_darts_per_leg_label': avg_darts_per_leg_label,
-                'avg_darts_per_leg_value': avg_darts_per_leg_value
+                'lowest_score_label': lowest_score_label,
+                'lowest_score_value': lowest_score_value,
+                'most_hit_label': most_hit_label,
+                'most_hit_value': most_hit_value,
+                'standard_deviation_label': standard_deviation_label,
+                'standard_deviation_value': standard_deviation_value
             })
 
         # Scoring system on the right
@@ -334,35 +354,24 @@ class MainGame:
         messagebox.showinfo("Bust!", "You have busted! Next player's turn.")
 
     def show_winner_popup(self, winner):
-        messagebox.showinfo("Winner!", f"{winner.name} wins the game!")
-        self.root.quit()
+        result = messagebox.askquestion("Winner!", f"{winner.name} wins the game! Do you want to replay or go back to the main menu?", icon='info', type='yesnocancel', default='yes', detail='Yes: Replay\nNo: Main Menu\nCancel: Exit')
+        if result == 'yes':
+            self.replay_game()
+        elif result == 'no':
+            self.go_back_to_main_menu()
+        else:
+            self.root.quit()
 
-    def next_turn(self):
-        self.confirm_button.grid_forget()
-        self.current_dart_scores = []  # Reset dart scores for the next turn
-        self.game.switch_player()
+    def replay_game(self):
+        # Logic to reset the game state and start a new game
+        self.game = Game(self.players, self.start_number)
+        self.current_dart_scores = []
         self.update_ui()
 
-    def update_ui(self):
-        current_player = self.game.players[self.game.current_player]
-        self.current_player_label.configure(text=f"Current Player: {current_player.name}")
-        self.current_score_label.configure(text=f"Score: {current_player.score}")
-        self.finish_label.configure(text=f"Finish: {current_player.score}")
-
-        # Update dart scores
-        dart_scores = [f"Dart {i+1}: {score * multiplier}" for i, (score, multiplier) in enumerate(self.current_dart_scores)]
-        self.dart1_label.configure(text=dart_scores[0] if len(dart_scores) > 0 else "Dart 1: 0")
-        self.dart2_label.configure(text=dart_scores[1] if len(dart_scores) > 1 else "Dart 2: 0")
-        self.dart3_label.configure(text=dart_scores[2] if len(dart_scores) > 2 else "Dart 3: 0")
-
-        # Reset dart scores for the new turn
-        self.dart1_label.configure(text="Dart 1: 0")
-        self.dart2_label.configure(text="Dart 2: 0")
-        self.dart3_label.configure(text="Dart 3: 0")
-
-        # Update player frames
-        for i, player in enumerate(self.game.players):
-            self.player_frames[i]['current_score_value'].configure(text=str(player.score))
+    def go_back_to_main_menu(self):
+        # Logic to go back to the main menu
+        self.root.quit()
+        # You can add logic here to show the main menu if you have one
 
 class Settings:
     def __init__(self, root):
@@ -412,6 +421,9 @@ class Settings:
         mute_checkbox = ctk.CTkCheckBox(main_frame, text="Mute", variable=self.mute_var)
         mute_checkbox.pack(pady=5)
 
+        visual_label = ctk.CTkLabel(main_frame, text="Visual Settings", font=("Helvetica", 14))
+        visual_label.pack(pady=(20, 10))
+
         # Light Mode Checkbox
         self.light_mode_var = ctk.BooleanVar()
         light_mode_checkbox = ctk.CTkCheckBox(main_frame, text="Light Mode", variable=self.light_mode_var)
@@ -447,6 +459,9 @@ class DartsGameSetup:
         self.sets_var = ctk.StringVar(value="1")
         self.legs_var = ctk.StringVar(value="1")
         self.player_entries = []
+
+        self.profiles = Profiles()  # Load profiles
+        self.profile_names = [profile["name"] for profile in self.profiles.profiles]  # Extract profile names
 
         self.create_widgets()
 
@@ -591,6 +606,12 @@ class DartsGameSetup:
         player_entry.pack(pady=5)
         self.player_entries.append(player_var)
 
+        # Add a dropdown to select a profile
+        profile_var = ctk.StringVar()
+        profile_dropdown = ctk.CTkComboBox(self.players_frame, values=self.profile_names, textvariable=profile_var, width=300, fg_color="#3a3d40", text_color="white")
+        profile_dropdown.pack(pady=5)
+        self.player_entries.append(profile_var)
+
     def remove_player_slot(self):
         if self.player_entries:
             self.player_entries.pop()
@@ -688,17 +709,17 @@ class MainMenu(ctk.CTk):
         )
         play_button.pack(pady=10)
 
-        stats_button = ctk.CTkButton(
+        profiles_button = ctk.CTkButton(
             main_menu_frame,
-            text="Stats",
-            command=self.show_stats,
+            text="Profiles",
+            command=self.show_profiles,
             fg_color="#3a3d40",
             text_color="white",
             hover_color="#4a4d50",
             width=200,
             height=40
         )
-        stats_button.pack(pady=10)
+        profiles_button.pack(pady=10)
 
         settings_button = ctk.CTkButton(
             main_menu_frame,
@@ -731,7 +752,9 @@ class MainMenu(ctk.CTk):
         print("Game Setup Window Opened")
         play_game_root.mainloop()
 
-    def show_stats(self):
+
+
+    def show_profiles(self):
         # Implement stats screen
         pass
 

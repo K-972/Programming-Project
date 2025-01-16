@@ -1,0 +1,6 @@
+Player: Alice, Old Rating: 1000, New Rating: 1012.5, Score: 1
+Player: Bob, Old Rating: 1000, New Rating: 987.7247648546596, Score: 0
+Player: Charlie, Old Rating: 1000, New Rating: 1000.0040381470784, Score: 0.5
+Player: Alice, Old Rating: 1000, New Rating: 1012.5, Score: 1
+Player: Bob, Old Rating: 1000, New Rating: 987.7247648546596, Score: 0
+Player: Charlie, Old Rating: 1000, New Rating: 1000.0040381470784, Score: 0.5
