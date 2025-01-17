@@ -17,5 +17,101 @@
             "First Win",
             "Highest Score 180"
         ]
+    },
+    {
+        "name": "Ethan",
+        "elo": 0,
+        "lifetime_dart_stats": {
+            "games_played": 0,
+            "wins": 0,
+            "losses": 0,
+            "highest_3_dart_score": 0,
+            "single_dart_avg": 0,
+            "three_dart_avg": 0,
+            "standard_deviation": 0,
+            "checkout_percentage": 0,
+            "darts_thrown": []
+        },
+        "achievements": []
+    },
+    {
+        "name": "Louise",
+        "elo": 0,
+        "lifetime_dart_stats": {
+            "games_played": 0,
+            "wins": 0,
+            "losses": 0,
+            "highest_3_dart_score": 0,
+            "single_dart_avg": 0,
+            "three_dart_avg": 0,
+            "standard_deviation": 0,
+            "checkout_percentage": 0,
+            "darts_thrown": []
+        },
+        "achievements": []
+    },
+    {
+        "name": "Tony",
+        "elo": 0,
+        "lifetime_dart_stats": {
+            "games_played": 0,
+            "wins": 0,
+            "losses": 0,
+            "highest_3_dart_score": 0,
+            "single_dart_avg": 0,
+            "three_dart_avg": 0,
+            "standard_deviation": 0,
+            "checkout_percentage": 0,
+            "darts_thrown": []
+        },
+        "achievements": []
+    },
+    {
+        "name": "Roman",
+        "elo": 0,
+        "lifetime_dart_stats": {
+            "games_played": 0,
+            "wins": 0,
+            "losses": 0,
+            "highest_3_dart_score": 0,
+            "single_dart_avg": 0,
+            "three_dart_avg": 0,
+            "standard_deviation": 0,
+            "checkout_percentage": 0,
+            "darts_thrown": []
+        },
+        "achievements": []
+    },
+    {
+        "name": "New Player",
+        "elo": 0,
+        "lifetime_dart_stats": {
+            "games_played": 0,
+            "wins": 0,
+            "losses": 0,
+            "highest_3_dart_score": 0,
+            "single_dart_avg": 0,
+            "three_dart_avg": 0,
+            "standard_deviation": 0,
+            "checkout_percentage": 0,
+            "darts_thrown": []
+        },
+        "achievements": []
+    },
+    {
+        "name": "New Player",
+        "elo": 0,
+        "lifetime_dart_stats": {
+            "games_played": 0,
+            "wins": 0,
+            "losses": 0,
+            "highest_3_dart_score": 0,
+            "single_dart_avg": 0,
+            "three_dart_avg": 0,
+            "standard_deviation": 0,
+            "checkout_percentage": 0,
+            "darts_thrown": []
+        },
+        "achievements": []
     }
 ]

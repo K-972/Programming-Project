@@ -1,3 +1,4 @@
+from operator import ne
 import customtkinter as ctk
 from tkinter import messagebox
 from dartlogic import Game
@@ -18,6 +19,8 @@ class MainGame:
         self.game = Game(self.players, start_number)
         self.current_dart_scores = []  # Track scores for the current turn
         self.multiplier = 1  # Initialize multiplier with default value
+
+        self.profiles = Profiles()  # Initialize Profiles instance
 
         self.create_widgets()
 
@@ -601,16 +604,11 @@ class DartsGameSetup:
         if len(self.player_entries) >= 12:
             messagebox.showerror("Error", "Maximum number of players is 12.")
             return
-        player_var = ctk.StringVar()
-        player_entry = ctk.CTkEntry(self.players_frame, textvariable=player_var, width=300, fg_color="#3a3d40", text_color="white")
-        player_entry.pack(pady=5)
-        self.player_entries.append(player_var)
 
         # Add a dropdown to select a profile
-        profile_var = ctk.StringVar()
-        profile_dropdown = ctk.CTkComboBox(self.players_frame, values=self.profile_names, textvariable=profile_var, width=300, fg_color="#3a3d40", text_color="white")
+        profile_dropdown = ctk.CTkComboBox(self.players_frame, values=self.profile_names, width=300, fg_color="#3a3d40", text_color="white")
         profile_dropdown.pack(pady=5)
-        self.player_entries.append(profile_var)
+        self.player_entries.append(profile_dropdown)
 
     def remove_player_slot(self):
         if self.player_entries:
@@ -620,7 +618,7 @@ class DartsGameSetup:
 
     def start_game(self):
         for player in self.player_entries:
-            if len(player.get()) > 15:
+            if isinstance(player, ctk.StringVar) and len(player.get()) > 15:
                 messagebox.showerror("Error", "Player names must be 15 characters or less.")
                 return
         game_type = self.game_type_var.get()
@@ -628,7 +626,7 @@ class DartsGameSetup:
             game_type = "Around The Clock"
         sets = self.sets_var.get()
         legs = self.legs_var.get()
-        players = [player.get() for player in self.player_entries if player.get()]
+        players = [player.get() if isinstance(player, ctk.StringVar) else player.get() for player in self.player_entries if player.get()]
 
         if len(players) >= 2:
             game_options = [game_type, sets, legs, players]
@@ -672,6 +670,78 @@ class DartsGameSetup:
         self.menu = MainMenu()
         print("menu opened")
         self.menu.mainloop()
+
+class profile_screen:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Profiles")
+        self.root.geometry("800x600")
+        self.root.configure(bg="#2c2f31")
+        self.root.attributes("-fullscreen", True)
+
+        self.profiles = Profiles()
+        self.profile_names = [profile["name"] for profile in self.profiles.profiles]
+
+        self.create_widgets()
+        self.display_profiles()
+
+    def create_widgets(self):
+        # Back Button
+        self.back_button = ctk.CTkButton(self.root, text="Back", command=self.go_back)
+        self.back_button.pack(fill=ctk.X, padx=10, pady=10)
+
+        # Create Profile Button
+        self.create_profile_button = ctk.CTkButton(self.root, text="Create Profile", command=self.create_profile)
+        self.create_profile_button.pack(fill=ctk.X, padx=10, pady=10)
+
+        # Container for player profiles
+        self.profiles_frame = ctk.CTkFrame(self.root)
+        self.profiles_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
+
+    def go_back(self):
+        self.root.destroy()
+        main_menu = MainMenu()
+        main_menu.mainloop()
+
+    def create_profile(self):
+        new_profile = self.profiles.profile_template()
+        new_profile["name"] = "New Player"  # You can add a dialog to get the name from the user
+        self.profiles.create_profile(new_profile)
+        self.refresh_profiles()
+
+    def display_profiles(self):
+        for profile in self.profiles.profiles:
+            self.add_player_profile(profile)
+
+    def add_player_profile(self, profile):
+        player_frame = ctk.CTkFrame(self.profiles_frame, height=100)  # Increase the height of the frame
+        player_frame.pack(fill=ctk.X, pady=5)
+
+        name_label = ctk.CTkLabel(player_frame, text=profile["name"])
+        name_label.pack(side=ctk.LEFT, padx=5)
+
+        button_frame = ctk.CTkFrame(player_frame)  # Create a frame for the buttons
+        button_frame.pack(side=ctk.RIGHT, padx=5)
+
+        edit_button = ctk.CTkButton(button_frame, text="Edit", command=lambda p=profile: self.edit_profile(p))
+        edit_button.pack(side=ctk.LEFT, padx=5)
+
+        view_button = ctk.CTkButton(button_frame, text="View", command=lambda p=profile: self.view_profile(p))
+        view_button.pack(side=ctk.LEFT, padx=5)
+
+    def edit_profile(self, profile):
+        # Logic to edit the profile
+        pass
+
+    def view_profile(self, profile):
+        # Logic to view the profile
+        pass
+
+    def refresh_profiles(self):
+        for widget in self.profiles_frame.winfo_children():
+            widget.destroy()
+        self.display_profiles()
+
 
 
 
@@ -755,8 +825,11 @@ class MainMenu(ctk.CTk):
 
 
     def show_profiles(self):
-        # Implement stats screen
-        pass
+        self.destroy()
+        profiles_root = ctk.CTk()
+        app = profile_screen(profiles_root)
+        print("Profiles Window Opened")
+        profiles_root.mainloop()
 
     def open_settings(self):
         self.destroy()

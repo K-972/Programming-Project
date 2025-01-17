@@ -53,3 +53,13 @@ class Profiles:
             profile["lifetime_dart_stats"]["three_dart_avg"] = sum(darts) / (len(darts) / 3)
             profile["lifetime_dart_stats"]["highest_3_dart_score"] = max([sum(darts[i:i+3]) for i in range(0, len(darts), 3)])
             # Add more stats calculations as needed
+
+    def test_create_profile(self):
+        new_profile = self.profile_template()
+        new_profile["name"] = "Roman"
+        self.create_profile(new_profile)
+        print(f"Profile created: {new_profile}")
+
+if __name__ == "__main__":
+    profiles = Profiles()
+    profiles.test_create_profile()
