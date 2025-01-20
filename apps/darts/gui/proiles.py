@@ -1,4 +1,5 @@
 import json
+import math
 
 class Profiles:
     def __init__(self, filename="profiles.json"):
@@ -9,8 +10,24 @@ class Profiles:
         try:
             with open(self.filename, 'r') as file:
                 return json.load(file)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             return []
+
+    def change_profile_name(self, old_name, new_name):
+        for profile in self.profiles:
+            if profile["name"] == old_name:
+                profile["name"] = new_name
+                self.save_profiles()
+                return True
+        return False
+
+    def delete_profile(self, profile_name):
+        for profile in self.profiles:
+            if profile["name"] == profile_name:
+                self.profiles.remove(profile)
+                self.save_profiles()
+                return True
+        return False
 
     def save_profiles(self):
         with open(self.filename, 'w') as file:
@@ -38,21 +55,58 @@ class Profiles:
             "achievements": []
         }
 
-    def record_dart_throw(self, profile_name, score, multiplier):
+    def record_dart_throw(self, profile_name, score, multiplier, bust, win):
         for profile in self.profiles:
             if profile["name"] == profile_name:
-                profile["lifetime_dart_stats"]["darts_thrown"].append(score)
+                if bust:
+                    # Handle bust: reset the current set of 3 darts
+                    if profile["lifetime_dart_stats"]["darts_thrown"] and len(profile["lifetime_dart_stats"]["darts_thrown"][-1]) < 3:
+                        profile["lifetime_dart_stats"]["darts_thrown"].pop()
+                else:
+                    if not profile["lifetime_dart_stats"]["darts_thrown"] or len(profile["lifetime_dart_stats"]["darts_thrown"][-1]) >= 3:
+                        profile["lifetime_dart_stats"]["darts_thrown"].append([])  # Start a new set of 3 darts
+                    profile["lifetime_dart_stats"]["darts_thrown"][-1].append(score * multiplier)
+
+                if win:
+                    profile["lifetime_dart_stats"]["wins"] += 1
+                    profile["lifetime_dart_stats"]["games_played"] += 1
+                    # Fill the remaining turns up to 3 darts with None
+                    while len(profile["lifetime_dart_stats"]["darts_thrown"][-1]) < 3:
+                        profile["lifetime_dart_stats"]["darts_thrown"][-1].append(None)
+                elif bust:
+                    profile["lifetime_dart_stats"]["losses"] += 1
+                    profile["lifetime_dart_stats"]["games_played"] += 1
+
                 self.update_stats(profile)
                 self.save_profiles()
                 break
 
     def update_stats(self, profile):
-        darts = profile["lifetime_dart_stats"]["darts_thrown"]
+        darts = [score for set_of_darts in profile["lifetime_dart_stats"]["darts_thrown"] for score in set_of_darts if score is not None]
         if darts:
-            profile["lifetime_dart_stats"]["single_dart_avg"] = sum(darts) / len(darts)
-            profile["lifetime_dart_stats"]["three_dart_avg"] = sum(darts) / (len(darts) / 3)
-            profile["lifetime_dart_stats"]["highest_3_dart_score"] = max([sum(darts[i:i+3]) for i in range(0, len(darts), 3)])
+            profile["lifetime_dart_stats"]["single_dart_avg"] = round(sum(darts) / len(darts), 2)
+            profile["lifetime_dart_stats"]["three_dart_avg"] = round(sum(darts) / (len(darts) / 3), 2)
+            profile["lifetime_dart_stats"]["highest_3_dart_score"] = round(max([sum(darts[i:i+3]) for i in range(0, len(darts), 3)]), 2)
+            profile["lifetime_dart_stats"]["standard_deviation"] = round(self.calculate_standard_deviation(darts), 2)
             # Add more stats calculations as needed
+
+    def calculate_standard_deviation(self, darts):
+        mean = sum(darts) / len(darts)
+        variance = sum((x - mean) ** 2 for x in darts) / len(darts)
+        return math.sqrt(variance)
+
+    def update_profile_stats(self, profile_name, game_result):
+        for profile in self.profiles:
+            if profile["name"] == profile_name:
+                stats = profile["lifetime_dart_stats"]
+                stats["games_played"] += 1
+                if game_result == "win":
+                    stats["wins"] += 1
+                elif game_result == "loss":
+                    stats["losses"] += 1
+                self.update_stats(profile)
+                self.save_profiles()
+                break
 
     def test_create_profile(self):
         new_profile = self.profile_template()

@@ -57,6 +57,7 @@ class MainGame:
 
         self.current_dart_scores.append((score, multiplier))
         turn_over, winner, Bust = self.game.turn(score, multiplier)
+        self.profiles.record_dart_throw(self.game.players[self.game.current_player].name, score, multiplier, Bust, winner)
         self.update_ui()
         self.multiplier = 1  # Reset multiplier after every throw
         if winner:
@@ -357,6 +358,13 @@ class MainGame:
         messagebox.showinfo("Bust!", "You have busted! Next player's turn.")
 
     def show_winner_popup(self, winner):
+        # Update stats for all players
+        for player in self.game.players:
+            if player.name == winner.name:
+                self.profiles.update_profile_stats(player.name, "win")
+            else:
+                self.profiles.update_profile_stats(player.name, "loss")
+
         result = messagebox.askquestion("Winner!", f"{winner.name} wins the game! Do you want to replay or go back to the main menu?", icon='info', type='yesnocancel', default='yes', detail='Yes: Replay\nNo: Main Menu\nCancel: Exit')
         if result == 'yes':
             self.replay_game()
@@ -372,9 +380,10 @@ class MainGame:
         self.update_ui()
 
     def go_back_to_main_menu(self):
-        # Logic to go back to the main menu
-        self.root.quit()
-        # You can add logic here to show the main menu if you have one
+        self.root.destroy()
+        self.menu = MainMenu()
+        print("menu opened")
+        self.menu.mainloop()
 
 class Settings:
     def __init__(self, root):
@@ -671,6 +680,10 @@ class DartsGameSetup:
         print("menu opened")
         self.menu.mainloop()
 
+
+
+
+
 class profile_screen:
     def __init__(self, root):
         self.root = root
@@ -714,13 +727,13 @@ class profile_screen:
             self.add_player_profile(profile)
 
     def add_player_profile(self, profile):
-        player_frame = ctk.CTkFrame(self.profiles_frame, height=100)  # Increase the height of the frame
-        player_frame.pack(fill=ctk.X, pady=5)
+        player_frame = ctk.CTkFrame(self.profiles_frame, height=100)
+        player_frame.pack(fill=ctk.X, pady=5, padx=5)
 
         name_label = ctk.CTkLabel(player_frame, text=profile["name"])
         name_label.pack(side=ctk.LEFT, padx=5)
 
-        button_frame = ctk.CTkFrame(player_frame)  # Create a frame for the buttons
+        button_frame = ctk.CTkFrame(player_frame)
         button_frame.pack(side=ctk.RIGHT, padx=5)
 
         edit_button = ctk.CTkButton(button_frame, text="Edit", command=lambda p=profile: self.edit_profile(p))
@@ -730,12 +743,65 @@ class profile_screen:
         view_button.pack(side=ctk.LEFT, padx=5)
 
     def edit_profile(self, profile):
-        # Logic to edit the profile
-        pass
+        edit_window = ctk.CTkToplevel(self.root)
+        edit_window.title("Edit Profile")
+        edit_window.geometry("300x200")
+        edit_window.configure(bg="#2c2f31")
+
+        name_label = ctk.CTkLabel(edit_window, text="Name:")
+        name_label.pack(pady=10)
+        name_entry = ctk.CTkEntry(edit_window)
+        name_entry.insert(0, profile["name"])
+        name_entry.pack(pady=10)
+
+        def save_changes():
+            old_name = profile["name"]
+            new_name = name_entry.get()
+            if self.profiles.change_profile_name(old_name, new_name):
+                self.refresh_profiles()
+                edit_window.destroy()
+            else:
+                ctk.messagebox.showerror("Error", "Failed to change profile name.")
+
+        def delete_profile():
+            if self.profiles.delete_profile(profile["name"]):
+                self.refresh_profiles()
+                edit_window.destroy()
+            else:
+                ctk.messagebox.showerror("Error", "Failed to delete profile.")
+
+        save_button = ctk.CTkButton(edit_window, text="Save", command=save_changes)
+        save_button.pack(pady=10)
+
+        delete_button = ctk.CTkButton(edit_window, text="Delete", command=delete_profile)
+        delete_button.pack(pady=10)
 
     def view_profile(self, profile):
-        # Logic to view the profile
-        pass
+        view_window = ctk.CTkToplevel(self.root)
+        view_window.title("View Profile")
+        view_window.geometry("400x400")
+        view_window.configure(bg="#2c2f31")
+
+        name_label = ctk.CTkLabel(view_window, text=f"Name: {profile['name']}")
+        name_label.pack(pady=10)
+
+        elo_label = ctk.CTkLabel(view_window, text=f"ELO: {profile['elo']}")
+        elo_label.pack(pady=10)
+
+        stats = profile["lifetime_dart_stats"]
+        stats_text = (
+            f"Games Played: {stats['games_played']}\n"
+            f"Wins: {stats['wins']}\n"
+            f"Losses: {stats['losses']}\n"
+            f"Highest 3 Dart Score: {stats['highest_3_dart_score']}\n"
+            f"Single Dart Avg: {stats['single_dart_avg']}\n"
+            f"Three Dart Avg: {stats['three_dart_avg']}\n"
+            f"Standard Deviation: {stats['standard_deviation']}\n"
+            f"Checkout Percentage: {stats['checkout_percentage']}\n"
+        )
+
+        stats_label = ctk.CTkLabel(view_window, text=stats_text)
+        stats_label.pack(pady=10)
 
     def refresh_profiles(self):
         for widget in self.profiles_frame.winfo_children():

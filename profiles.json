@@ -1,68 +1,33 @@
 [
     {
-        "name": "John Doe",
-        "elo": 1200,
-        "lifetime_dart_stats": {
-            "games_played": 50,
-            "wins": 30,
-            "losses": 20,
-            "highest_3_dart_score": 0,
-            "single_dart_avg": 0,
-            "three_dart_avg": 0,
-            "standard_deviation": 0,
-            "checkout_percentage": 0,
-            "highest_score": 180
-        },
-        "achievements": [
-            "First Win",
-            "Highest Score 180"
-        ]
-    },
-    {
-        "name": "Ethan",
-        "elo": 0,
-        "lifetime_dart_stats": {
-            "games_played": 0,
-            "wins": 0,
-            "losses": 0,
-            "highest_3_dart_score": 0,
-            "single_dart_avg": 0,
-            "three_dart_avg": 0,
-            "standard_deviation": 0,
-            "checkout_percentage": 0,
-            "darts_thrown": []
-        },
-        "achievements": []
-    },
-    {
-        "name": "Louise",
-        "elo": 0,
-        "lifetime_dart_stats": {
-            "games_played": 0,
-            "wins": 0,
-            "losses": 0,
-            "highest_3_dart_score": 0,
-            "single_dart_avg": 0,
-            "three_dart_avg": 0,
-            "standard_deviation": 0,
-            "checkout_percentage": 0,
-            "darts_thrown": []
-        },
-        "achievements": []
-    },
-    {
         "name": "Tony",
         "elo": 0,
         "lifetime_dart_stats": {
-            "games_played": 0,
-            "wins": 0,
-            "losses": 0,
-            "highest_3_dart_score": 0,
-            "single_dart_avg": 0,
-            "three_dart_avg": 0,
-            "standard_deviation": 0,
+            "games_played": 2,
+            "wins": 1,
+            "losses": 1,
+            "highest_3_dart_score": 153,
+            "single_dart_avg": 37.62,
+            "three_dart_avg": 112.88,
+            "standard_deviation": 20.86,
             "checkout_percentage": 0,
-            "darts_thrown": []
+            "darts_thrown": [
+                [
+                    60,
+                    57,
+                    36
+                ],
+                [
+                    8,
+                    17,
+                    54
+                ],
+                [
+                    57,
+                    12,
+                    null
+                ]
+            ]
         },
         "achievements": []
     },
@@ -73,44 +38,23 @@
             "games_played": 0,
             "wins": 0,
             "losses": 0,
-            "highest_3_dart_score": 0,
-            "single_dart_avg": 0,
-            "three_dart_avg": 0,
-            "standard_deviation": 0,
+            "highest_3_dart_score": 125,
+            "single_dart_avg": 30.83,
+            "three_dart_avg": 92.5,
+            "standard_deviation": 13.67,
             "checkout_percentage": 0,
-            "darts_thrown": []
-        },
-        "achievements": []
-    },
-    {
-        "name": "New Player",
-        "elo": 0,
-        "lifetime_dart_stats": {
-            "games_played": 0,
-            "wins": 0,
-            "losses": 0,
-            "highest_3_dart_score": 0,
-            "single_dart_avg": 0,
-            "three_dart_avg": 0,
-            "standard_deviation": 0,
-            "checkout_percentage": 0,
-            "darts_thrown": []
-        },
-        "achievements": []
-    },
-    {
-        "name": "New Player",
-        "elo": 0,
-        "lifetime_dart_stats": {
-            "games_played": 0,
-            "wins": 0,
-            "losses": 0,
-            "highest_3_dart_score": 0,
-            "single_dart_avg": 0,
-            "three_dart_avg": 0,
-            "standard_deviation": 0,
-            "checkout_percentage": 0,
-            "darts_thrown": []
+            "darts_thrown": [
+                [
+                    20,
+                    20,
+                    20
+                ],
+                [
+                    50,
+                    50,
+                    25
+                ]
+            ]
         },
         "achievements": []
     }
