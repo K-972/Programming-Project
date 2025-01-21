@@ -55,7 +55,7 @@ class Profiles:
             "achievements": []
         }
 
-    def record_dart_throw(self, profile_name, score, multiplier, bust, win):
+    def record_dart_throw(self, profile_name, score, multiplier, bust=False, win=False):
         for profile in self.profiles:
             if profile["name"] == profile_name:
                 if bust:
@@ -74,8 +74,8 @@ class Profiles:
                     while len(profile["lifetime_dart_stats"]["darts_thrown"][-1]) < 3:
                         profile["lifetime_dart_stats"]["darts_thrown"][-1].append(None)
                 elif bust:
-                    profile["lifetime_dart_stats"]["losses"] += 1
-                    profile["lifetime_dart_stats"]["games_played"] += 1
+                    # Do not increment losses here, handle it when the game ends
+                    pass
 
                 self.update_stats(profile)
                 self.save_profiles()
@@ -93,7 +93,7 @@ class Profiles:
     def calculate_standard_deviation(self, darts):
         mean = sum(darts) / len(darts)
         variance = sum((x - mean) ** 2 for x in darts) / len(darts)
-        return math.sqrt(variance)
+        return round(math.sqrt(variance), 2)
 
     def update_profile_stats(self, profile_name, game_result):
         for profile in self.profiles:

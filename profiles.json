@@ -3,13 +3,13 @@
         "name": "Tony",
         "elo": 0,
         "lifetime_dart_stats": {
-            "games_played": 2,
-            "wins": 1,
+            "games_played": 4,
+            "wins": 3,
             "losses": 1,
-            "highest_3_dart_score": 153,
-            "single_dart_avg": 37.62,
-            "three_dart_avg": 112.88,
-            "standard_deviation": 20.86,
+            "highest_3_dart_score": 180,
+            "single_dart_avg": 35.34,
+            "three_dart_avg": 106.03,
+            "standard_deviation": 22.51,
             "checkout_percentage": 0,
             "darts_thrown": [
                 [
@@ -26,6 +26,41 @@
                     57,
                     12,
                     null
+                ],
+                [
+                    60,
+                    60,
+                    60
+                ],
+                [
+                    60,
+                    45,
+                    16
+                ],
+                [
+                    1,
+                    1,
+                    1
+                ],
+                [
+                    13,
+                    4,
+                    11
+                ],
+                [
+                    18,
+                    14,
+                    60
+                ],
+                [
+                    50,
+                    50,
+                    50
+                ],
+                [
+                    50,
+                    50,
+                    50
                 ]
             ]
         },
@@ -35,13 +70,13 @@
         "name": "Roman",
         "elo": 0,
         "lifetime_dart_stats": {
-            "games_played": 0,
+            "games_played": 2,
             "wins": 0,
-            "losses": 0,
-            "highest_3_dart_score": 125,
-            "single_dart_avg": 30.83,
-            "three_dart_avg": 92.5,
-            "standard_deviation": 13.67,
+            "losses": 2,
+            "highest_3_dart_score": 160,
+            "single_dart_avg": 42.78,
+            "three_dart_avg": 128.33,
+            "standard_deviation": 13.15,
             "checkout_percentage": 0,
             "darts_thrown": [
                 [
@@ -53,6 +88,26 @@
                     50,
                     50,
                     25
+                ],
+                [
+                    60,
+                    50,
+                    50
+                ],
+                [
+                    50,
+                    50,
+                    25
+                ],
+                [
+                    50,
+                    50,
+                    50
+                ],
+                [
+                    50,
+                    50,
+                    50
                 ]
             ]
         },
