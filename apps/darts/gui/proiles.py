@@ -65,7 +65,7 @@ class Profiles:
                 else:
                     if not profile["lifetime_dart_stats"]["darts_thrown"] or len(profile["lifetime_dart_stats"]["darts_thrown"][-1]) >= 3:
                         profile["lifetime_dart_stats"]["darts_thrown"].append([])  # Start a new set of 3 darts
-                    profile["lifetime_dart_stats"]["darts_thrown"][-1].append(score * multiplier)
+                    profile["lifetime_dart_stats"]["darts_thrown"][-1].append([score, multiplier])
 
                 if win:
                     profile["lifetime_dart_stats"]["wins"] += 1
@@ -82,7 +82,7 @@ class Profiles:
                 break
 
     def update_stats(self, profile):
-        darts = [score for set_of_darts in profile["lifetime_dart_stats"]["darts_thrown"] for score in set_of_darts if score is not None]
+        darts = [score * multiplier for set_of_darts in profile["lifetime_dart_stats"]["darts_thrown"] for score, multiplier in set_of_darts if score is not None]
         if darts:
             profile["lifetime_dart_stats"]["single_dart_avg"] = round(sum(darts) / len(darts), 2)
             profile["lifetime_dart_stats"]["three_dart_avg"] = round(sum(darts) / (len(darts) / 3), 2)
@@ -108,12 +108,3 @@ class Profiles:
                 self.save_profiles()
                 break
 
-    def test_create_profile(self):
-        new_profile = self.profile_template()
-        new_profile["name"] = "Roman"
-        self.create_profile(new_profile)
-        print(f"Profile created: {new_profile}")
-
-if __name__ == "__main__":
-    profiles = Profiles()
-    profiles.test_create_profile()

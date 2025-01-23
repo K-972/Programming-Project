@@ -808,7 +808,14 @@ class profile_screen:
             widget.destroy()
         self.display_profiles()
 
-
+    def update_stats(self, profile):
+        darts = [score * multiplier for set_of_darts in profile["lifetime_dart_stats"]["darts_thrown"] for score, multiplier in set_of_darts if score is not None and multiplier is not None]
+        if darts:
+            profile["lifetime_dart_stats"]["single_dart_avg"] = round(sum(darts) / len(darts), 2)
+            profile["lifetime_dart_stats"]["three_dart_avg"] = round(sum(darts) / (len(darts) / 3), 2)
+            profile["lifetime_dart_stats"]["highest_3_dart_score"] = round(max([sum(darts[i:i+3]) for i in range(0, len(darts), 3)]), 2)
+            profile["lifetime_dart_stats"]["standard_deviation"] = round(self.calculate_standard_deviation(darts), 2)
+            # Add more stats calculations as needed
 
 
 class MainMenu(ctk.CTk):

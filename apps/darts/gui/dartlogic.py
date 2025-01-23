@@ -89,9 +89,9 @@ class Game:
         winner = None
         bust = False
         # Example logic for determining winner or bust
-        if current_player.score == 0:
+        if current_player.score == 0 and multiplier == 2:
             winner = current_player
-        elif current_player.score < 0:
+        elif current_player.score <= 1:
             bust = True
             current_player.score += score * multiplier  # Revert the score change
         return turn_over, winner, bust
