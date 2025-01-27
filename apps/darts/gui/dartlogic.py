@@ -79,7 +79,7 @@ class Game:
             current_player.undo_last_score()
             self.num_of_darts -= 1
 
-    def turn(self, score, multiplier):
+    def turn(self, score, multiplier): # THIS LOGIC DOES NOT FUCKING WORK !!!!!!!!!
         current_player = self.players[self.current_player]
         current_player.score -= score * multiplier
         spot = self.calculate_spot(score, multiplier)
